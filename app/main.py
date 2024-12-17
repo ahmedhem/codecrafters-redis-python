@@ -1,15 +1,16 @@
-import socket  # noqa: F401
+import socket
 
-
-def main():
-    # You can use print statements as follows for debugging, they'll be visible when running tests.
-    print("Logs from your program will appear here!")
-
-    # Uncomment this to pass the first stage
-
-    server_socket = socket.create_server(("localhost", 6379), reuse_port=True)
-    server_socket.accept() # wait for client
-
+def start_server():
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server.bind(('localhost', 6379))  # Binding to localhost and port 12345
+    client_socket, client_address = server.accept()
+    while True:
+        data = client_socket.recv(1024)
+        if not data:
+            break
+        reply = f"PONG\r\n"
+        client_socket.send(reply.encode('utf-8'))
 
 if __name__ == "__main__":
-    main()
+    start_server()
