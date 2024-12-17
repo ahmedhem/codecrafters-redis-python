@@ -14,7 +14,7 @@ def start_server():
     server_socket = socket.create_server(("localhost", 6379), reuse_port=True)
     client_socket, client_address = server_socket.accept()
     data = client_socket.recv(1024)
-    reply = f"PONG\r\n"
+    reply = f"+PONG\r\n"
     client_socket.send(reply.encode('utf-8'))
 
 if __name__ == "__main__":
