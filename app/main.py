@@ -12,10 +12,10 @@ def start_server():
     #     reply = f"PONG\r\n"
     #     client_socket.send(reply.encode('utf-8'))
     server_socket = socket.create_server(("localhost", 6379), reuse_port=True)
-    server_socket.accept() # wait for client
-    data = server_socket.recv(1024)
+    client_socket, client_address = server_socket.accept()
+    data = client_socket.recv(1024)
     reply = f"PONG\r\n"
-    server_socket.send(reply.encode('utf-8'))
+    client_socket.send(reply.encode('utf-8'))
 
 if __name__ == "__main__":
     start_server()
