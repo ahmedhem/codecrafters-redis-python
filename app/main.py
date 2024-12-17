@@ -17,5 +17,8 @@ def start_server():
     reply = f"+PONG\r\n"
     client_socket.send(reply.encode('utf-8'))
 
+
+
+
 if __name__ == "__main__":
     start_server()
