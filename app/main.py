@@ -1,6 +1,8 @@
+import asyncio
 import select
 import socket
 import threading
+from pickle import PROTO
 
 
 def handle_multiple_connections_with_select(server):
@@ -47,6 +49,35 @@ def handle_multiple_connections_with_thread(server):
         threading.Thread(target=handle_connection, args=(client_socket,)).start()
 
 
+class ASYNCServer:
+    def __init__(self):
+        pass
+
+    async def start(self):
+        server = await asyncio.start_server(self.handle_connection, host ='127.0.0.1', port = 6379)
+        async with server:
+            await server.serve_forever()
+
+    @classmethod
+    async def handle_connection(cls,
+        reader: asyncio.StreamReader,
+        writer: asyncio.StreamWriter):
+
+        while True:
+            data = await reader.read(1024)
+            if not data:
+                break
+            print(f"Connection from {writer.transport.get_extra_info('peername')}")
+
+            reply = "+PONG\r\n"
+            for msg in data.splitlines():
+                msg = msg.decode('utf-8')
+                if msg == "PING":
+                    writer.write(reply.encode("utf-8"))
+            await writer.drain()
+        writer.close()
+        await writer.wait_closed()
+        print("Connection Closed")
 def create_socket_server():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -60,6 +91,10 @@ def create_socket_server():
 
     handle_multiple_connections_with_thread(server)
 
+def create_async_server():
+    loop = asyncio.new_event_loop()
+    loop.run_until_complete(ASYNCServer().start())
 
 if __name__ == "__main__":
-    create_socket_server()
+    # create_socket_server()
+    create_async_server()
