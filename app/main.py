@@ -1,42 +1,39 @@
+import select
 import socket
 
 
 def create_socket_server():
-    try:
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        server.bind(('localhost', 6379))
+    server.bind(('localhost', 6379))
 
-        server.listen(1)
+    server.listen(5)
 
-        print("Server is listening on localhost:6379")
+    print("Server is listening on localhost:6379")
 
-        client_socket, client_address = server.accept()
-        print(f"Connection from {client_address}")
 
-        while True:
-            try:
-                data = client_socket.recv(1024)
-                if not data:
-                    break
-
-                reply = "+PONG\r\n"
-                for msg in data.splitlines():
-                    msg = msg.decode('utf-8')
-                    if msg == "PING":
-                        client_socket.send(reply.encode('utf-8'))
-
-            except ConnectionResetError:
-                print("Client disconnected")
-                break
-
-        # Close sockets
-        client_socket.close()
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    inputs = [server]
+    while True:
+        readable, _, _ = select.select(inputs, [], [], 1.0)
+        for sock in readable:
+            if sock is server:
+                client_socket, client_address = sock.accept()
+                print(f"Connection from {client_address}")
+                inputs.append(client_socket)
+            else:
+                data = sock.recv(1024)
+                if data:
+                    reply = "+PONG\r\n"
+                    for msg in data.splitlines():
+                        msg = msg.decode('utf-8')
+                        if msg == "ping":
+                            sock.send(reply.encode('utf-8'))
+                else:
+                    print("Client disconnected")
+                    inputs.remove(sock)
+                    sock.close()
 
 
 if __name__ == "__main__":
