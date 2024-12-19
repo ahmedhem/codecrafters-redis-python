@@ -28,7 +28,7 @@ def create_socket_server():
                     reply = "+PONG\r\n"
                     for msg in data.splitlines():
                         msg = msg.decode('utf-8')
-                        if msg == "ping":
+                        if msg == "PING":
                             sock.send(reply.encode('utf-8'))
                 else:
                     print("Client disconnected")
