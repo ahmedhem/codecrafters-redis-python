@@ -11,7 +11,7 @@ class Encoder:
 
     def execute(self):
         if self.lines[0] == '-1': #None
-            return "-1\r\n".encode('utf-8')
+            return "$-1\r\n".encode('utf-8')
 
         response = ""
         if self.is_array:
