@@ -1,9 +1,9 @@
 from app.encoder import Encoder
 from app.events.event import Event
-from app.storage import storage
+from app.storage import Database
 
 class GetEvent(Event):
 
     def execute(self):
-        value = storage.get(self.args[0]) or "-1"
+        value = Database.get(self.args[0])
         return Encoder(lines = [value]).execute()
