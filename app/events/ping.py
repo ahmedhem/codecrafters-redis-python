@@ -5,5 +5,5 @@ from app.events.event import Event
 class PingEvent(Event):
 
     def execute(self):
-        reply = "+PONG"
+        reply = "PONG"
         return Encoder(lines = [reply]).execute()
