@@ -10,17 +10,18 @@ class EventHandler:
 
     def __init__(self, msg: bytes):
         self.msg = msg
-        pass
+        self.event_map = {
+            "PING": PingEvent,
+            "ECHO": EchoEvent,
+            "SET": SetEvent,
+            "GET": GetEvent
+        }
 
     def execute(self):
         event, args = Decoder(msg = self.msg).execute()
-        if event == "PING":
-            return PingEvent(args = args).execute()
-        if event == "ECHO":
-            return EchoEvent(args = args).execute()
-        if event == "SET":
-            return SetEvent(args = args).execute()
-        if event == "GET":
-            return GetEvent(args = args).execute()
+        cls = self.event_map.get(event)
 
-        return "$-1\r\n".encode()
+        if not cls:
+            raise ValueError(f"Unknown event type: {event}")
+
+        return cls(args=args).execute()

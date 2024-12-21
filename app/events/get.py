@@ -5,5 +5,5 @@ from app.storage import storage
 class GetEvent(Event):
 
     def execute(self):
-        value = storage[self.args[0]] or "-1"
+        value = storage.get(self.args[0]) or "-1"
         return Encoder(lines = [value]).execute()
