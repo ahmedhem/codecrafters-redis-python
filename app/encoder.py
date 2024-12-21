@@ -10,6 +10,9 @@ class Encoder:
         pass
 
     def execute(self):
+        if self.lines[0] == '-1': #None
+            return "-1\r\n".encode('utf-8')
+
         response = ""
         if self.is_array:
            response += "*" + str(len(self.lines)) + "\r\n"
