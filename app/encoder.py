@@ -3,7 +3,7 @@ from typing import List
 
 class Encoder:
     lines: List[str]
-    is_array: False
+    is_array:bool = False
 
     def __init__(self, lines: List[str]):
         self.lines = lines
