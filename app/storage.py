@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from turtledemo.penrose import start
 
 
 class Database:
