@@ -9,8 +9,8 @@ class ASYNCServer:
 
     def parse_arguments(self):
         parser = argparse.ArgumentParser(description='Redis file processor')
-        parser.add_argument('--dir', required=True, help='Directory path')
-        parser.add_argument('--dbfilename', required=True, help='Database filename')
+        parser.add_argument('--dir', required=False, help='Directory path')
+        parser.add_argument('--dbfilename', required=False, help='Database filename')
 
         return parser.parse_args()
 
