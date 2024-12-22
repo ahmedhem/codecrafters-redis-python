@@ -6,6 +6,7 @@ keywords_args_len: {str: int} = {
     "GET": 1,
     "ECHO": 1,
     "px": 1,
+    "CONFIG": 0,
 }
 
 class KEYWORDS(Enum):
@@ -14,3 +15,4 @@ class KEYWORDS(Enum):
     GET: str = "GET"
     ECHO: str = "ECHO"
     PX: str = "px"
+    CONFIG: str = "CONFIG"

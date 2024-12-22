@@ -1,11 +1,13 @@
 from typing import List
 
+from app.config import Config
 from app.decoder import Decoder
 from app.encoder import Encoder
 from app.events.echo import EchoEvent
 from app.events.ping import PingEvent
 from app.events.set import SetEvent
 from app.events.get import GetEvent
+from app.events.config import ConfigEvent
 from app.constants import keywords_args_len
 from app.models.command import Command
 
@@ -19,7 +21,8 @@ class MessageHandler:
             "PING": PingEvent,
             "ECHO": EchoEvent,
             "SET": SetEvent,
-            "GET": GetEvent
+            "GET": GetEvent,
+            "CONFIG": ConfigEvent,
         }
 
     def format_command(self, args) -> List[Command]:

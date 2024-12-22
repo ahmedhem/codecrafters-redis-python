@@ -3,10 +3,11 @@ from typing import List
 
 class Encoder:
     lines: List[str]
-    is_array:bool = False
+    to_array:bool
 
-    def __init__(self, lines: List[str]):
+    def __init__(self, lines: List[str], to_array:bool = False):
         self.lines = lines
+        self.to_array = to_array
         pass
 
     def execute(self):
@@ -14,7 +15,7 @@ class Encoder:
             return "$-1\r\n".encode('utf-8')
 
         response = ""
-        if self.is_array:
+        if self.to_array:
            response += "*" + str(len(self.lines)) + "\r\n"
 
         for word in self.lines:
