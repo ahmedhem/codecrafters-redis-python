@@ -1,5 +1,5 @@
 import asyncio
-from app.event_handler import EventHandler
+from app.message_handler import MessageHandler
 
 class ASYNCServer:
     def __init__(self):
@@ -22,7 +22,7 @@ class ASYNCServer:
                 break
             print(f"Connection from {writer.transport.get_extra_info('peername')}")
 
-            response = EventHandler(msg = data).execute()
+            response = MessageHandler(msg = data).execute()
             if response:
                 writer.write(response)
                 await writer.drain()

@@ -1,23 +1,39 @@
+from typing import List
+
 
 class Decoder:
-    msg: bytes
+    lines: List[str]
 
     def __init__(self, msg: bytes):
-        self.msg = msg
+        self.lines = [line.decode() for line in msg.splitlines()]
 
-    def execute(self):
-        lines = [line.decode() for line in self.msg.splitlines()]
-        if len(lines) == 1: # in form of spaces e.g Echo Hello
-            words = lines[0].split()
-            event = words[0]
-            args = words[1:]
+    def validate_protocol(self) -> bool:
+        try:
+            if not self.lines[0].startswith('*') or not self.lines[0][1:].isdigit():
+                return False
+            array_len = int(self.lines[0][1:])
+            if len(self.lines) != array_len * 2 + 1:
+                return False
+            for pos in range(1, array_len, 2):
+                if not self.lines[pos].startswith('$') or not self.lines[pos][1:].isdigit():
+                    return False
+                word_len = int(self.lines[pos][1:])
+                if len(self.lines[pos + 1]) != word_len:
+                    return False
+            return True
+        except IndexError:
+            return False
+
+    def execute(self) -> List[str]:
+        args = []
+        if len(self.lines) == 1: # in form of spaces e.g Echo Hello
+            args = self.lines[0].split()
 
         else: # in form of redis protocol e.g *1\r\n$4\r\nPING\r\n
-            nr_of_words = int(lines[0][1:])
-            event = lines[2]
-            args = []
-            if nr_of_words > 1:
-                for i in range(4, nr_of_words * 2 + 1, 2):
-                    args.append(lines[i])
+            if not self.validate_protocol():
+                raise Exception('Invalid protocol')
 
-        return event, args
+            for i in range(2, len(self.lines), 2):
+                args.append(self.lines[i])
+
+        return args
