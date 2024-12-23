@@ -1,5 +1,7 @@
 import argparse
 import asyncio
+
+from app.info import Replication
 from app.rdb_parser import RDBParser
 from app.message_handler import MessageHandler
 from app.config import Config
@@ -15,8 +17,9 @@ class ASYNCServer:
     def parse_arguments(self):
         parser = argparse.ArgumentParser(description='Redis file processor')
         parser.add_argument('--dir', required=False, help='Directory path')
-        parser.add_argument('--dbfilename', required=False, help='Database filename')
-        parser.add_argument('--port', required=False, help='Database filename')
+        parser.add_argument('--dbfilename', required=False, help='dbfilename')
+        parser.add_argument('--port', required=False, help='port')
+        parser.add_argument('--replicaof', required=False, help='replicaof')
 
         return parser.parse_args()
 
@@ -25,12 +28,15 @@ class ASYNCServer:
         dir = args.dir
         dbfilename = args.dbfilename
         port = args.port
+        replicaof = args.replicaof
         if dir:
             Config.set_directory(dir)
         if dbfilename:
             Config.set_dbfilename(dbfilename)
         if port:
             Config.set_port(port)
+        if replicaof:
+            Replication.role = 'slave'
 
     async def start(self):
         server = await asyncio.start_server(self.handle_connection, host ='127.0.0.1', port = Config.port)
