@@ -41,7 +41,7 @@ class Storage:
 
         self.databases[Config.db_nr][key] = {
             "value": value,
-            "expiry_time": expire_time,
+            "expire_time": expire_time,
             "type": 0
         }
 
@@ -50,7 +50,7 @@ class Storage:
     @classmethod
     def get(self, key):
         print(self.databases[Config.db_nr][key])
-        if key in self.databases[Config.db_nr] and (not self.databases[Config.db_nr][key].get('expiry_time') or self.databases[Config.db_nr][key].get('expiry_time') >= datetime.now()):
+        if key in self.databases[Config.db_nr] and (not self.databases[Config.db_nr][key].get('expire_time') or self.databases[Config.db_nr][key].get('expire_time') >= datetime.now()):
             return self.databases[Config.db_nr][key]['value']
 
         return "-1"
