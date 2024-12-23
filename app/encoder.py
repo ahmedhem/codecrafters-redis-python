@@ -11,12 +11,13 @@ class Encoder:
         pass
 
     def execute(self):
-        if self.lines[0] == '-1': #None
-            return "$-1\r\n".encode('utf-8')
 
         response = ""
         if self.to_array:
            response += "*" + str(len(self.lines)) + "\r\n"
+
+        if self.lines[0] == '-1': #None
+            return (response + "$-1\r\n").encode('utf-8')
 
         for word in self.lines:
             response += "$" + str(len(word)) + "\r\n" + word + "\r\n"
