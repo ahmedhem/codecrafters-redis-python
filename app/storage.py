@@ -26,7 +26,6 @@ class Storage:
            if mo:
                matched_keys.append(key)
 
-        print(matched_keys)
         return matched_keys
 
     @classmethod

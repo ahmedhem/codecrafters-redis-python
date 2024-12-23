@@ -1,7 +1,7 @@
-from app.rdb_parser import RDBParser
 from app.server.AsyncServer import ASYNCServer
 
-parser = RDBParser()
+server = ASYNCServer()
+
 if __name__ == "__main__":
+    server.start()
     parser.parse()
-    ASYNCServer().start()
