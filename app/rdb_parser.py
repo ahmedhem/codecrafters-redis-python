@@ -10,7 +10,7 @@ from app.config import Config
 
 class RDBParser:
     def __init__(self):
-        self.file_path = '.' + Config.dir + Config.dbfilename
+        self.file_path = os.path.join(Config.dir, Config.dbfilename)
         self.file: BinaryIO | None = None
         self.version = b"0011"  # Default RDB version
 
