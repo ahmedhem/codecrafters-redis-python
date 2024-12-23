@@ -10,7 +10,7 @@ from app.config import Config
 
 class RDBParser:
     def __init__(self):
-        self.file_path =  Config.dir + Config.dbfilename
+        self.file_path = os.getcwd() + Config.dir + "Ss"
         self.file: BinaryIO | None = None
         self.version = b"0011"  # Default RDB version
 
@@ -93,6 +93,9 @@ class RDBParser:
                             'expire_time': expire_time,
                         }
 
+        except FileNotFoundError:
+            if not Storage.databases.get(Config.db_nr):
+                Storage.assign_default()
         except Exception:
             print("couldn't parse RDB file")
             raise

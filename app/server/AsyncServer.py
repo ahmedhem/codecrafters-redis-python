@@ -23,8 +23,10 @@ class ASYNCServer:
         args = self.parse_arguments()
         dir = args.dir
         dbfilename = args.dbfilename
-        Config.set_directory(dir)
-        Config.set_dbfilename(dbfilename)
+        if dir:
+            Config.set_directory(dir)
+        if dbfilename:
+            Config.set_dbfilename(dbfilename)
 
     async def start(self):
         server = await asyncio.start_server(self.handle_connection, host ='127.0.0.1', port = 6379)
