@@ -16,7 +16,7 @@ class Encoder:
         if self.to_array:
            response += "*" + str(len(self.lines)) + "\r\n"
 
-        if self.lines[0] == '-1': #None
+        if self.lines and self.lines[0] == '-1': #None
             return (response + "$-1\r\n").encode('utf-8')
 
         for word in self.lines:

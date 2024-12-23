@@ -13,5 +13,5 @@ class KeysEvent(Event):
     def execute(self):
         regex = self.commands[0].args[0]
         regex = regex.replace('*', '.*')
-        result = Storage.get_keys(regex) or ['-1']
+        result = Storage.get_keys(regex)
         return Encoder(lines = result, to_array=True).execute()
