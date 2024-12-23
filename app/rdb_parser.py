@@ -92,7 +92,6 @@ class RDBParser:
                             'type': value_type,
                             'expire_time': expire_time,
                         }
-                        print(expire_time)
         except FileNotFoundError:
             print("File not found")
             if not Storage.databases.get(Config.db_nr):

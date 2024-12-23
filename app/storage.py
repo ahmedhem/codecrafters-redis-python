@@ -37,7 +37,7 @@ class Storage:
 
         expire_time = None
         if expiry_ms is not None:
-            expiry_time = datetime.now() + timedelta(milliseconds=expiry_ms)
+            expire_time = datetime.utcnow() + timedelta(milliseconds=expiry_ms)
 
         self.databases[Config.db_nr][key] = {
             "value": value,
@@ -49,6 +49,7 @@ class Storage:
 
     @classmethod
     def get(self, key):
+        print(self.databases[Config.db_nr][key])
         if key in self.databases[Config.db_nr] and (not self.databases[Config.db_nr][key].get('expiry_time') or self.databases[Config.db_nr][key].get('expiry_time') >= datetime.now()):
             return self.databases[Config.db_nr][key]['value']
 
