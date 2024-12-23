@@ -1,6 +1,7 @@
 class Config:
-    dir = "/redis-files"
+    dir = "/redis-rdb-files/"
     dbfilename = "dump.rdb"
+    db_nr = 0
 
     def __init__(self, dir = None, dbfilename = None):
         self.dir = dir or self.dir

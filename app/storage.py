@@ -1,30 +1,56 @@
 from datetime import datetime, timedelta
+from typing import Dict, Any
+import re
+
+from app.config import Config
 
 
-class Database:
-    db: dict = {}
-    db_expiry: dict = {}
-    db_lock: dict = {}
+class Storage:
+    databases: Dict[int, Dict[str, Any]] = {}
+    databases_lock: Dict[int, Dict[str, bool]] = {}
 
     def __init__(self):
         pass
 
     @classmethod
-    def set(self, key, value, expiry_ms = None):
-        while self.db_lock.get(key):
+    def assign_default(self):
+        self.databases[Config.db_nr] = {}
+        self.databases_lock[Config.db_nr] = {}
+
+    @classmethod
+    def get_keys(self, regex = '.*'):
+        keys = self.databases[Config.db_nr].keys()
+        matched_keys = []
+        for key in keys:
+           mo = re.match(regex, key)
+           if mo:
+               matched_keys.append(key)
+
+        print(matched_keys)
+        return matched_keys
+
+    @classmethod
+    def set(self, key, value, expiry_ms=None):
+        while self.databases_lock[Config.db_nr].get(key):
             continue
 
-        self.db_lock[key] = True
+        self.databases_lock[Config.db_nr][key] = True
 
+        expire_time = None
         if expiry_ms is not None:
-            self.db_expiry[key] = datetime.now() + timedelta(milliseconds=expiry_ms)
+            expiry_time = datetime.now() + timedelta(milliseconds=expiry_ms)
 
-        self.db[key] = value
-        self.db_lock[key] = False
+        self.databases[Config.db_nr][key] = {
+            "value": value,
+            "expiry_time": expire_time,
+            "type": 0
+        }
+
+        self.databases_lock[Config.db_nr][key] = False
 
     @classmethod
     def get(self, key):
-        if key in self.db and (not self.db_expiry.get(key) or self.db_expiry.get(key) >= datetime.now()):
-            return self.db[key]
+        if key in self.databases[Config.db_nr] and (not self.databases[Config.db_nr][key].get('expiry_time') or self.databases[Config.db_nr][key].get('expiry_time') >= datetime.now()):
+            return self.databases[Config.db_nr][key]['value']
 
         return "-1"

@@ -1,6 +1,6 @@
 from app.encoder import Encoder
 from app.events.base import Event
-from app.storage import Database
+from app.storage import Storage
 from app.constants import KEYWORDS
 # TODO assume there are many actions with that are shared with another events
 
@@ -21,5 +21,5 @@ class SetEvent(Event):
                     raise ValueError("Expiry time must be an integer")
                 self.expiry_time = int(command.args[0])
 
-        Database.set(self.key, self.value, self.expiry_time)
+        Storage.set(self.key, self.value, self.expiry_time)
         return Encoder(lines = ["OK"]).execute()

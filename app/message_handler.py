@@ -4,6 +4,7 @@ from app.config import Config
 from app.decoder import Decoder
 from app.encoder import Encoder
 from app.events.echo import EchoEvent
+from app.events.keys import KeysEvent
 from app.events.ping import PingEvent
 from app.events.set import SetEvent
 from app.events.get import GetEvent
@@ -23,6 +24,7 @@ class MessageHandler:
             "SET": SetEvent,
             "GET": GetEvent,
             "CONFIG": ConfigEvent,
+            "KEYS": KeysEvent,
         }
 
     def format_command(self, args) -> List[Command]:

@@ -7,6 +7,7 @@ keywords_args_len: {str: int} = {
     "ECHO": 1,
     "px": 1,
     "CONFIG": 0,
+    "KEYS": 1
 }
 
 class KEYWORDS(Enum):
@@ -16,3 +17,18 @@ class KEYWORDS(Enum):
     ECHO: str = "ECHO"
     PX: str = "px"
     CONFIG: str = "CONFIG"
+    KEYS: str = "KEYS"
+
+
+class ValueType(Enum):
+    STRING = 0
+    LIST = 1
+    SET = 2
+    SORTED_SET = 3
+    HASH = 4
+    ZIPMAP = 9
+    ZIPLIST = 10
+    INTSET = 11
+    SORTED_SET_ZIPLIST = 12
+    HASH_ZIPLIST = 13
+    LIST_ZIPLIST = 14

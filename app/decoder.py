@@ -6,6 +6,7 @@ class Decoder:
 
     def __init__(self, msg: bytes):
         self.lines = [line.decode() for line in msg.splitlines()]
+        print(msg.decode())
 
     def validate_protocol(self) -> bool:
         try:
