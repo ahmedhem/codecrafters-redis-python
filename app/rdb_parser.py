@@ -16,38 +16,34 @@ class RDBParser:
         self.version = b"0011"  # Default RDB version
 
     def read_length(self):
-        byte = ord(self.file.read(1))
-        bits = byte & 0xC0  # Get first 2 bits (11000000)
-
-        if bits == 0:  # 00xxxxxx - 6 bit number
-            return byte & 0x3F, 1
-
-        elif bits == 0x40:  # 01xxxxxx - 14 bit number
-            next_byte = ord(self.file.read(1))
-            return ((byte & 0x3F) << 8) | next_byte, 1
-
-        elif bits == 0x80:  # 10xxxxxx
-            # Length is in next 4 bytes
-            length = struct.unpack('>I', self.file.read(4))[0]
-            return length, 1
-
-        elif byte == 0xC0:  # 11000000 - int 8
-            # integer = struct.unpack('>B', self.file.read(1))[0]
-            return 1, 2
-
-        elif byte == 0xC1:  # 11000001 - int 16
-            # integer = struct.unpack('>H', self.file.read(2))[0]
-            return 2, 2
-
-        elif byte == 0xC2:  # 11000010 - int 32
-            # integer = struct.unpack('>I', self.file.read(4))[0]
-            return 4, 2
-
-        raise ValueError(f"Invalid length encoding byte: {byte:02x}")
+        byte = self.file.read(1)
+        byte = ord(byte)
+        print(byte)
+        bits = (byte & 0xC0)
+        print(bits)
+        if bits == 0:
+            return (byte & 0x3F), 1
+        elif bits == 2:
+            return (self.file.read(4)).decode(), 1
+        elif bits == 1:
+            extra_byte = ord(self.file.read(1))
+            return ((byte & 0x3F) << 8) | extra_byte, 1  # Combine the 6 bits from the first byte with all 8 bits of the second byte
+        else:
+            byte = byte & 0x3F
+            print(byte)
+            if byte == 0xC0:
+                return 1, 0
+            elif byte == 0xC1:
+                return 2, 0
+            elif byte == 0xC2:
+                return 4, 0
+            else:
+                raise NotImplementedError(f"{byte} is not supported")
 
 
     def read_encoded_string(self):
         len, type = self.read_length()
+        print(len)
         res = self.file.read(len)
         if type == 1:
             return res.decode()
@@ -106,12 +102,12 @@ class RDBParser:
                         if not Storage.databases.get(database_nr):
                             Storage.assign_default()
 
+                        print(key, value)
                         Storage.databases[database_nr][key] = {
                             'value': value,
                             'type': value_type,
                             'expire_time': expire_datetime,
                         }
-
         except FileNotFoundError:
             print("File not found")
             if not Storage.databases.get(Config.db_nr):

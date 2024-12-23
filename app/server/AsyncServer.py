@@ -16,6 +16,7 @@ class ASYNCServer:
         parser = argparse.ArgumentParser(description='Redis file processor')
         parser.add_argument('--dir', required=False, help='Directory path')
         parser.add_argument('--dbfilename', required=False, help='Database filename')
+        parser.add_argument('--port', required=False, help='Database filename')
 
         return parser.parse_args()
 
@@ -23,13 +24,16 @@ class ASYNCServer:
         args = self.parse_arguments()
         dir = args.dir
         dbfilename = args.dbfilename
+        port = args.port
         if dir:
             Config.set_directory(dir)
         if dbfilename:
             Config.set_dbfilename(dbfilename)
+        if port:
+            Config.set_port(port)
 
     async def start(self):
-        server = await asyncio.start_server(self.handle_connection, host ='127.0.0.1', port = 6379)
+        server = await asyncio.start_server(self.handle_connection, host ='127.0.0.1', port = Config.port)
         RDBParser().parse()
         async with server:
             await server.serve_forever()
