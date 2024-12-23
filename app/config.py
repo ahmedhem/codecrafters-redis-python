@@ -3,6 +3,7 @@ class Config:
     dbfilename = "dump.rdb"
     db_nr = 0
     port = 6379
+    role = "master"
 
     def __init__(self, dir = None, dbfilename = None, port = None):
         self.dir = dir or self.dir
