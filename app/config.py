@@ -5,7 +5,7 @@ class Config:
     port = 6379
     role = "master"
 
-    def __init__(self, dir = None, dbfilename = None, port = None):
+    def __init__(self, dir=None, dbfilename=None, port=None):
         self.dir = dir or self.dir
         self.dbfilename = dbfilename or self.dbfilename
         self.port = port or self.port

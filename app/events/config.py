@@ -5,14 +5,18 @@ from app.events.base import Event
 
 
 class ConfigEvent(Event):
-    supported_actions: list = [KEYWORDS.CONFIG.value, KEYWORDS.GET.value, KEYWORDS.SET.value]
+    supported_actions: list = [
+        KEYWORDS.CONFIG.value,
+        KEYWORDS.GET.value,
+        KEYWORDS.SET.value,
+    ]
 
     def get_config(self, key):
         config_attr = Config.__dict__
         if key not in config_attr:
             raise Exception(f"{key} is unknown")
 
-        return Encoder(lines = [key, config_attr[key]], to_array = True).execute()
+        return Encoder(lines=[key, config_attr[key]], to_array=True).execute()
 
     def set_config(self, key, value):
         pass

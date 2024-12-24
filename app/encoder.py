@@ -3,17 +3,18 @@ from typing import List
 
 class Encoder:
     lines: List[str]
-    to_array:bool
-    to_bulk:bool
-    def __init__(self, lines: List[str], to_array:bool = False, to_bulk:bool = True):
+    to_array: bool
+    to_bulk: bool
+
+    def __init__(self, lines: List[str], to_array: bool = False, to_bulk: bool = True):
         self.lines = lines
         self.to_array = to_array
         self.to_bulk = to_bulk
         pass
 
     def execute(self):
-        if self.lines and self.lines[0] == '-1': #None
-            return "$-1\r\n".encode('utf-8')
+        if self.lines and self.lines[0] == "-1":  # None
+            return "$-1\r\n".encode("utf-8")
 
         response = ""
         if self.to_array:
@@ -29,4 +30,4 @@ class Encoder:
 
             response = "$" + str(len(data)) + "\r\n" + data + "\r\n"
 
-        return response.encode('utf-8')
+        return response.encode("utf-8")

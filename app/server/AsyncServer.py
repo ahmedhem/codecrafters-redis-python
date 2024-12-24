@@ -15,11 +15,11 @@ class ASYNCServer:
         loop.run_until_complete(self.start())
 
     def parse_arguments(self):
-        parser = argparse.ArgumentParser(description='Redis file processor')
-        parser.add_argument('--dir', required=False, help='Directory path')
-        parser.add_argument('--dbfilename', required=False, help='dbfilename')
-        parser.add_argument('--port', required=False, help='port')
-        parser.add_argument('--replicaof', required=False, help='replicaof')
+        parser = argparse.ArgumentParser(description="Redis file processor")
+        parser.add_argument("--dir", required=False, help="Directory path")
+        parser.add_argument("--dbfilename", required=False, help="dbfilename")
+        parser.add_argument("--port", required=False, help="port")
+        parser.add_argument("--replicaof", required=False, help="replicaof")
 
         return parser.parse_args()
 
@@ -36,18 +36,20 @@ class ASYNCServer:
         if port:
             Config.set_port(port)
         if replicaof:
-            Replication.role = 'slave'
+            Replication.role = "slave"
 
     async def start(self):
-        server = await asyncio.start_server(self.handle_connection, host ='127.0.0.1', port = Config.port)
+        server = await asyncio.start_server(
+            self.handle_connection, host="127.0.0.1", port=Config.port
+        )
         RDBParser().parse()
         async with server:
             await server.serve_forever()
 
     @classmethod
-    async def handle_connection(cls,
-        reader: asyncio.StreamReader,
-        writer: asyncio.StreamWriter):
+    async def handle_connection(
+        cls, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+    ):
 
         while True:
             data = await reader.read(1024)
@@ -55,7 +57,7 @@ class ASYNCServer:
                 break
             print(f"Connection from {writer.transport.get_extra_info('peername')}")
 
-            response = MessageHandler(msg = data).execute()
+            response = MessageHandler(msg=data).execute()
             if response:
                 writer.write(response)
                 await writer.drain()
@@ -63,4 +65,3 @@ class ASYNCServer:
         writer.close()
         await writer.wait_closed()
         print("Connection Closed")
-

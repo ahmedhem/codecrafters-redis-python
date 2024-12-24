@@ -8,8 +8,9 @@ keywords_args_len: {str: int} = {
     "px": 1,
     "CONFIG": 0,
     "KEYS": 1,
-    "INFO": 1
+    "INFO": 1,
 }
+
 
 class KEYWORDS(Enum):
     PING: str = "PING"

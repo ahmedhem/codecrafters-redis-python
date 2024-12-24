@@ -35,24 +35,37 @@ class MessageHandler:
 
         while pos < len(args):
             if args[pos] not in [key.value for key in KEYWORDS]:
-               raise Exception(f"{args[pos]} is not a action")
+                raise Exception(f"{args[pos]} is not a action")
 
             action_args_count = 0
-            while pos + action_args_count + 1 < len(args) and args[pos + action_args_count + 1] not in keywords_args_len.keys():
+            while (
+                pos + action_args_count + 1 < len(args)
+                and args[pos + action_args_count + 1] not in keywords_args_len.keys()
+            ):
                 action_args_count += 1
 
             action = args[pos]
             if action_args_count > keywords_args_len[action]:
-                raise Exception(f"action {action} only take {keywords_args_len} arguments")
+                raise Exception(
+                    f"action {action} only take {keywords_args_len} arguments"
+                )
 
-            response.append(Command(action = action, args = args[pos + 1: pos + action_args_count + 1] if action_args_count > 0 else []))
+            response.append(
+                Command(
+                    action=action,
+                    args=(
+                        args[pos + 1 : pos + action_args_count + 1]
+                        if action_args_count > 0
+                        else []
+                    ),
+                )
+            )
             pos = pos + action_args_count + 1
 
         return response
 
-
     def execute(self):
-        commands = self.format_command(Decoder(msg = self.msg).execute())
+        commands = self.format_command(Decoder(msg=self.msg).execute())
         event = commands[0].action
         cls = self.event_map.get(event)
 

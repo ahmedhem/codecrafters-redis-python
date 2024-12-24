@@ -18,13 +18,13 @@ class Storage:
         self.databases_lock[Config.db_nr] = {}
 
     @classmethod
-    def get_keys(self, regex = '.*'):
+    def get_keys(self, regex=".*"):
         keys = self.databases[Config.db_nr].keys()
         matched_keys = []
         for key in keys:
-           mo = re.match(regex, key)
-           if mo:
-               matched_keys.append(key)
+            mo = re.match(regex, key)
+            if mo:
+                matched_keys.append(key)
 
         return matched_keys
 
@@ -42,7 +42,7 @@ class Storage:
         self.databases[Config.db_nr][key] = {
             "value": value,
             "expire_time": expire_time,
-            "type": 0
+            "type": 0,
         }
 
         self.databases_lock[Config.db_nr][key] = False
@@ -50,7 +50,10 @@ class Storage:
     @classmethod
     def get(self, key):
         print(self.databases[Config.db_nr][key])
-        if key in self.databases[Config.db_nr] and (not self.databases[Config.db_nr][key].get('expire_time') or self.databases[Config.db_nr][key].get('expire_time') >= datetime.now()):
-            return self.databases[Config.db_nr][key]['value']
+        if key in self.databases[Config.db_nr] and (
+            not self.databases[Config.db_nr][key].get("expire_time")
+            or self.databases[Config.db_nr][key].get("expire_time") >= datetime.now()
+        ):
+            return self.databases[Config.db_nr][key]["value"]
 
         return "-1"

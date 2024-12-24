@@ -8,4 +8,4 @@ class PingEvent(Event):
 
     def execute(self):
         reply = "PONG"
-        return Encoder(lines = [reply]).execute()
+        return Encoder(lines=[reply]).execute()

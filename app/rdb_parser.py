@@ -19,7 +19,7 @@ class RDBParser:
         byte = self.file.read(1)
         byte = ord(byte)
         print(byte)
-        bits = (byte & 0xC0)
+        bits = byte & 0xC0
         print(bits)
         if bits == 0:
             return (byte & 0x3F), 1
@@ -27,7 +27,9 @@ class RDBParser:
             return (self.file.read(4)).decode(), 1
         elif bits == 1:
             extra_byte = ord(self.file.read(1))
-            return ((byte & 0x3F) << 8) | extra_byte, 1  # Combine the 6 bits from the first byte with all 8 bits of the second byte
+            return (
+                (byte & 0x3F) << 8
+            ) | extra_byte, 1  # Combine the 6 bits from the first byte with all 8 bits of the second byte
         else:
             byte = byte & 0x3F
             print(byte)
@@ -40,7 +42,6 @@ class RDBParser:
             else:
                 raise NotImplementedError(f"{byte} is not supported")
 
-
     def read_encoded_string(self):
         len, type = self.read_length()
         print(len)
@@ -48,8 +49,7 @@ class RDBParser:
         if type == 1:
             return res.decode()
         else:
-            return res # Special case
-
+            return res  # Special case
 
     def parse(self):
         try:
@@ -63,37 +63,37 @@ class RDBParser:
                 database_nr = None
                 while True:
                     op_code = self.file.read(1)
-                    if op_code == b'\xfa':
+                    if op_code == b"\xfa":
                         key = self.read_encoded_string()
                         value = self.read_encoded_string()
-                    elif op_code == b'\xfe':
+                    elif op_code == b"\xfe":
                         database_nr = self.read_length()[0]
-                    elif op_code == b'\xfb':
+                    elif op_code == b"\xfb":
                         hash_table_size = self.read_length()[0]
                         expire_hash_table_size = self.read_length()[0]
-                    elif op_code == b'\xff':
+                    elif op_code == b"\xff":
                         checksum = self.file.read(8)
                         break
                     else:
                         expire_datetime = None
-                        if op_code == b'\xfd':
+                        if op_code == b"\xfd":
                             data = self.file.read(8)
                             expire_time = int.from_bytes(data, byteorder="little")
                             expire_datetime = datetime.fromtimestamp(expire_time)
                             value_type = self.file.read(1)
-                        elif op_code == b'\xfc':
+                        elif op_code == b"\xfc":
                             data = self.file.read(8)
                             expire_time = int.from_bytes(data, byteorder="little")
-                            expire_datetime = datetime.fromtimestamp(expire_time/1000)
+                            expire_datetime = datetime.fromtimestamp(expire_time / 1000)
                             value_type = self.file.read(1)
                         else:
                             value_type = op_code
 
                         key = self.read_encoded_string()
                         value_type = ord(value_type)
-                        if value_type == 0x00: # string
+                        if value_type == 0x00:  # string
                             value = self.read_encoded_string()
-                        if value_type == 1: # list
+                        if value_type == 1:  # list
                             value = []
                             size = self.read_length()[0]
                             for _ in range(size):
@@ -104,9 +104,9 @@ class RDBParser:
 
                         print(key, value)
                         Storage.databases[database_nr][key] = {
-                            'value': value,
-                            'type': value_type,
-                            'expire_time': expire_datetime,
+                            "value": value,
+                            "type": value_type,
+                            "expire_time": expire_datetime,
                         }
         except FileNotFoundError:
             print("File not found")

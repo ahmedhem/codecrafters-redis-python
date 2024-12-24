@@ -10,7 +10,9 @@ class Event:
     def __init__(self, commands: List[Command]):
         self.commands = commands
         if not self.validate_commands():
-            raise Exception(f"Some commands are not supported for event {self.commands[0].action}")
+            raise Exception(
+                f"Some commands are not supported for event {self.commands[0].action}"
+            )
 
     def validate_commands(self) -> bool:
         for command in self.commands:
