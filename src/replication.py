@@ -22,6 +22,7 @@ class Replication:
                 lines=f"REPLCONF listening-port {Config.port}".split(" "), to_array=True
             ).execute(),
             Encoder(lines="REPLCONF capa psync2".split(" "), to_array=True).execute(),
+            Encoder(lines="PSYNC ? -1".split(" "), to_array=True).execute(),
         ]
 
         send_msg(Config.master_host, Config.master_port, messages)

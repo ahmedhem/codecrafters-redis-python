@@ -49,7 +49,6 @@ class Storage:
 
     @classmethod
     def get(self, key):
-        print(self.databases[Config.db_nr][key])
         if key in self.databases[Config.db_nr] and (
             not self.databases[Config.db_nr][key].get("expire_time")
             or self.databases[Config.db_nr][key].get("expire_time") >= datetime.now()

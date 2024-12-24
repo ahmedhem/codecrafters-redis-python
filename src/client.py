@@ -7,7 +7,6 @@ def send_msg(host, port, msgs):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((host, port))
             for msg in msgs:
-                print(msg)
                 s.sendall(msg)
                 response = s.recv(4096)
                 responses.append(response)

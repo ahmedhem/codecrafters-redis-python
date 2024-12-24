@@ -18,9 +18,7 @@ class RDBParser:
     def read_length(self):
         byte = self.file.read(1)
         byte = ord(byte)
-        print(byte)
         bits = byte & 0xC0
-        print(bits)
         if bits == 0:
             return (byte & 0x3F), 1
         elif bits == 2:
@@ -32,7 +30,6 @@ class RDBParser:
             ) | extra_byte, 1  # Combine the 6 bits from the first byte with all 8 bits of the second byte
         else:
             byte = byte & 0x3F
-            print(byte)
             if byte == 0xC0:
                 return 1, 0
             elif byte == 0xC1:
@@ -44,7 +41,6 @@ class RDBParser:
 
     def read_encoded_string(self):
         len, type = self.read_length()
-        print(len)
         res = self.file.read(len)
         if type == 1:
             return res.decode()
@@ -102,7 +98,6 @@ class RDBParser:
                         if not Storage.databases.get(database_nr):
                             Storage.assign_default()
 
-                        print(key, value)
                         Storage.databases[database_nr][key] = {
                             "value": value,
                             "type": value_type,
