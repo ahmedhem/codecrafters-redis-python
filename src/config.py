@@ -28,4 +28,3 @@ class Config:
     def set_master_replica(cls, master_host, master_port):
         cls.master_host = master_host
         cls.master_port = int(master_port)
-

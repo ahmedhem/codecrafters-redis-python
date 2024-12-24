@@ -2,7 +2,7 @@ from src.constants import KEYWORDS
 from src.encoder import Encoder
 
 from src.events.base import Event
-from src.info import Replication
+from src.replication import Replication
 
 INFO_commands_map: dict = {"replication": Replication}
 
