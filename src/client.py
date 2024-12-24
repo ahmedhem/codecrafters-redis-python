@@ -12,5 +12,4 @@ def send_msg(host, port, msgs):
                 responses.append(response)
         return responses
     except Exception as e:
-        print(f"Could not send message {msg}")
-        raise
+        print(f"Could not send message {msgs}")

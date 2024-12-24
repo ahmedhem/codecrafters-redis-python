@@ -1,3 +1,5 @@
+from http.client import responses
+
 from src.client import send_msg
 from src.config import Config
 from src.encoder import Encoder
@@ -25,4 +27,4 @@ class Replication:
             Encoder(lines="PSYNC ? -1".split(" "), to_array=True).execute(),
         ]
 
-        send_msg(Config.master_host, Config.master_port, messages)
+        responses = send_msg(Config.master_host, Config.master_port, messages)
