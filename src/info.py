@@ -16,3 +16,5 @@ class Replication:
     def start_replication(cls):
         cls.role = "slave"
         send_msg(Config.master_host, Config.master_port, Encoder(lines=["PING"], to_array=True).execute())
+        send_msg(Config.master_host, Config.master_port, Encoder(lines=[f"REPLCONF listening-port {Config.port}"], to_array=True).execute())
+        send_msg(Config.master_host, Config.master_port, Encoder(lines=["REPLCONF capa psync2"], to_array=True).execute())

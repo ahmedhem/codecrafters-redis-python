@@ -9,6 +9,7 @@ from src.events.ping import PingEvent
 from src.events.set import SetEvent
 from src.events.get import GetEvent
 from src.events.info import INFOEvent
+from src.events.replconf import REPLCONFEvent
 from src.events.config import ConfigEvent
 from src.constants import keywords_args_len, KEYWORDS
 from src.models.command import Command
@@ -27,6 +28,7 @@ class MessageHandler:
             "CONFIG": ConfigEvent,
             "KEYS": KeysEvent,
             "INFO": INFOEvent,
+            "REPLCONF": REPLCONFEvent,
         }
 
     def format_command(self, args) -> List[Command]:
