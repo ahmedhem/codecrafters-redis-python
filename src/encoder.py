@@ -27,6 +27,7 @@ class Encoder:
         if self.lines and self.lines[0] == "-1":  # None
             return "$-1\r\n".encode("utf-8")
 
+
         response = ""
         if self.to_simple_string:
             response = f"+ {' '.join(self.lines)} \r\n"
