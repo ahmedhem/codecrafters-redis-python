@@ -6,12 +6,21 @@ class Encoder:
     to_array: bool
     to_bulk: bool
     to_simple_string: bool
+    is_file: bool
 
-    def __init__(self, lines: List[str], to_array: bool = False, to_bulk: bool = True, to_simple_string: bool = False):
+    def __init__(
+        self,
+        lines: List[str],
+        to_array: bool = False,
+        to_bulk: bool = True,
+        to_simple_string: bool = False,
+        is_file: bool = False,
+    ):
         self.lines = lines
         self.to_array = to_array
         self.to_bulk = to_bulk
         self.to_simple_string = to_simple_string
+        self.is_file = is_file
         pass
 
     def execute(self):

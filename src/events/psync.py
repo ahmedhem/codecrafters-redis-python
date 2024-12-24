@@ -8,4 +8,7 @@ class PSYNCEvent(Event):
     supported_actions: list = [KEYWORDS.PSYNC.value]
 
     def execute(self):
-        return Encoder(lines=f"FULLRESYNC {Replication.master_replid} {Replication.master_repl_offset}".split(), to_simple_string=True).execute()
+        return Encoder(
+            lines=f"FULLRESYNC {Replication.master_replid} {Replication.master_repl_offset}".split(),
+            to_simple_string=True,
+        ).execute()

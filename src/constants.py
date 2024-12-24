@@ -10,7 +10,7 @@ keywords_args_len: {str: int} = {
     "KEYS": 1,
     "INFO": 1,
     "REPLCONF": 2,
-    "PSYNC": 2
+    "PSYNC": 2,
 }
 
 
