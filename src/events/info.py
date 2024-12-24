@@ -2,9 +2,9 @@ from src.constants import KEYWORDS
 from src.encoder import Encoder
 
 from src.events.base import Event
-from src.replication import Replication
+from src.replication_config import ReplicationConfig
 
-INFO_commands_map: dict = {"replication": Replication}
+INFO_commands_map: dict = {"replication": ReplicationConfig}
 
 
 class INFOEvent(Event):
@@ -32,4 +32,4 @@ class INFOEvent(Event):
                 if not i[0].startswith("__")
             ]
 
-        return Encoder(lines=key_value_pairs).execute()
+        return [Encoder(lines=key_value_pairs).execute()]

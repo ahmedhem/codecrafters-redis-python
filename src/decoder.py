@@ -7,7 +7,7 @@ class Decoder:
     def __init__(self, msg: bytes):
         self.lines = [line.decode() for line in msg.splitlines()]
 
-    def validate_protocol(self) -> bool:
+    def validate_protocol_array(self) -> bool:
         try:
             if not self.lines[0].startswith("*") or not self.lines[0][1:].isdigit():
                 return False
@@ -25,18 +25,30 @@ class Decoder:
                     return False
             return True
         except IndexError:
-            return False
+            raise
+
+    def validate_protocol_bulk_string(self) -> bool:
+        try:
+            if not self.lines[0].startswith("$") or not self.lines[0][1:].isdigit():
+                return False
+
+            string_len = int(self.lines[0][1:])
+            if len(self.lines[1]) != string_len:
+                return False
+
+            return True
+        except IndexError:
+            raise
 
     def execute(self) -> List[str]:
         args = []
-        if len(self.lines) == 1:  # in form of spaces e.g Echo Hello
+
+        if self.lines[0][0] == '+':  # in form of spaces e.g +Echo Hello
             args = self.lines[0].split()
-
-        else:  # in form of redis protocol e.g *1\r\n$4\r\nPING\r\n
-            if not self.validate_protocol():
-                raise Exception("Invalid protocol")
-
+        elif self.lines[0][0] == '*':  # in form of redis protocol e.g *1\r\n$4\r\nPING\r\n
             for i in range(2, len(self.lines), 2):
                 args.append(self.lines[i])
+        elif self.lines[0][0] == '$':
+            args.append(self.lines[1])
 
         return args

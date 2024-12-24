@@ -23,4 +23,4 @@ class SetEvent(Event):
                 self.expiry_time = int(command.args[0])
 
         Storage.set(self.key, self.value, self.expiry_time)
-        return Encoder(lines=["OK"]).execute()
+        return [Encoder(lines=["OK"]).execute()]

@@ -9,4 +9,4 @@ class GetEvent(Event):
 
     def execute(self):
         value = Storage.get(self.commands[0].args[0])
-        return Encoder(lines=[value]).execute()
+        return [Encoder(lines=[value]).execute()]

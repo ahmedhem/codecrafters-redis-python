@@ -1,5 +1,6 @@
+import os
 class Config:
-    dir = "/redis-rdb-files/"
+    dir = f"{os.getcwd()}/src/assets/"
     dbfilename = "dump.rdb"
     db_nr = 0
     port = 6379

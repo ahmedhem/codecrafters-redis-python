@@ -1,7 +1,7 @@
 import argparse
 import asyncio
 
-from src.replication import Replication
+from src.replication_config import ReplicationConfig
 from src.message_handler import MessageHandler
 from src.config import Config
 from src.rdb_parser import RDBParser
@@ -33,7 +33,7 @@ class ASYNCServer:
         if args.replicaof:
             host, port = args.replicaof.split(" ")
             Config.set_master_replica(host, port)
-            Replication.start_replication()
+            ReplicationConfig.start_replication()
 
     async def start(self):
         server = await asyncio.start_server(
@@ -54,10 +54,12 @@ class ASYNCServer:
                 break
             print(f"Connection from {writer.transport.get_extra_info('peername')}")
 
-            response = MessageHandler(msg=data).execute()
-            if response:
-                writer.write(response)
-                await writer.drain()
+            responses = MessageHandler(msg=data).execute()
+
+            if responses:
+                for response in responses:
+                    writer.write(response)
+            await writer.drain()
 
         writer.close()
         await writer.wait_closed()

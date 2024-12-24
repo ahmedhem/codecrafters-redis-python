@@ -11,6 +11,7 @@ keywords_args_len: {str: int} = {
     "INFO": 1,
     "REPLCONF": 2,
     "PSYNC": 2,
+    "FULLRESYNC": 1,
 }
 
 
@@ -25,6 +26,7 @@ class KEYWORDS(Enum):
     INFO: str = "INFO"
     REPLCONF: str = "REPLCONF"
     PSYNC: str = "PSYNC"
+    FULLRESYNC: str = "FULLRESYNC"
 
 
 class ValueType(Enum):

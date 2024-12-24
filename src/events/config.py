@@ -24,6 +24,6 @@ class ConfigEvent(Event):
     def execute(self):
         for command in self.commands:
             if command.action == KEYWORDS.GET.value:
-                return self.get_config(command.args[0])
+                return [self.get_config(command.args[0])]
             if command.action == KEYWORDS.SET.value:
-                return self.set_config(command.args[0], command.args[1])
+                return [self.set_config(command.args[0], command.args[1])]

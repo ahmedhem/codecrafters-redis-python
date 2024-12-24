@@ -8,4 +8,4 @@ class EchoEvent(Event):
 
     def execute(self):
         value = self.commands[0].args
-        return Encoder(lines=value).execute()
+        return [Encoder(lines=value).execute()]

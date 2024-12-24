@@ -5,10 +5,11 @@ from src.config import Config
 from src.encoder import Encoder
 
 
-class Replication:
+class ReplicationConfig:
     role = "master"
     master_replid = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb"
     master_repl_offset = "0"
+    replicas_ports = []
 
     def __init__(self, role=None, master_replid=None, master_repl_offset=None):
         self.role = role or self.role
@@ -28,3 +29,7 @@ class Replication:
         ]
 
         responses = send_msg(Config.master_host, Config.master_port, messages)
+
+    @classmethod
+    def add_replica_port(cls, port):
+        cls.replicas_ports.append(port)

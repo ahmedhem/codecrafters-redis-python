@@ -21,14 +21,14 @@ class Encoder:
         self.to_bulk = to_bulk
         self.to_simple_string = to_simple_string
         self.is_file = is_file
-        pass
 
     def execute(self):
         if self.lines and self.lines[0] == "-1":  # None
             return "$-1\r\n".encode("utf-8")
 
-
         response = ""
+        if self.is_file:
+            response = f"{len(self.lines[0])}\r\n" + self.lines[0]
         if self.to_simple_string:
             response = f"+ {' '.join(self.lines)} \r\n"
         elif self.to_array:

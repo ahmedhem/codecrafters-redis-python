@@ -10,9 +10,9 @@ from src.config import Config
 
 
 class RDBParser:
-    def __init__(self):
+    def __init__(self, file = None):
         self.file_path = os.path.join(Config.dir, Config.dbfilename)
-        self.file: BinaryIO | None = None
+        self.file: BinaryIO | None = file
         self.version = b"0011"  # Default RDB version
 
     def read_length(self):
@@ -30,11 +30,11 @@ class RDBParser:
             ) | extra_byte, 1  # Combine the 6 bits from the first byte with all 8 bits of the second byte
         else:
             byte = byte & 0x3F
-            if byte == 0xC0:
+            if byte == 0:
                 return 1, 0
-            elif byte == 0xC1:
+            elif byte == 1:
                 return 2, 0
-            elif byte == 0xC2:
+            elif byte == 2:
                 return 4, 0
             else:
                 raise NotImplementedError(f"{byte} is not supported")
@@ -49,7 +49,7 @@ class RDBParser:
 
     def parse(self):
         try:
-            with open(self.file_path, "rb") as self.file:
+            with self.file or open(self.file_path, "rb") as self.file:
                 magic_string = self.file.read(5)
                 if magic_string != b"REDIS":
                     raise Exception("Invalid magic string")

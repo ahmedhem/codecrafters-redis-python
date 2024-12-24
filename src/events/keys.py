@@ -15,4 +15,4 @@ class KeysEvent(Event):
         regex = self.commands[0].args[0]
         regex = regex.replace("*", ".*")
         result = Storage.get_keys(regex)
-        return Encoder(lines=result, to_array=True).execute()
+        return [Encoder(lines=result, to_array=True).execute()]
