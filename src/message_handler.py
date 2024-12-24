@@ -1,17 +1,17 @@
 from typing import List
 
-from app.config import Config
-from app.decoder import Decoder
-from app.encoder import Encoder
-from app.events.echo import EchoEvent
-from app.events.keys import KeysEvent
-from app.events.ping import PingEvent
-from app.events.set import SetEvent
-from app.events.get import GetEvent
-from app.events.info import INFOEvent
-from app.events.config import ConfigEvent
-from app.constants import keywords_args_len, KEYWORDS
-from app.models.command import Command
+from src.config import Config
+from src.decoder import Decoder
+from src.encoder import Encoder
+from src.events.echo import EchoEvent
+from src.events.keys import KeysEvent
+from src.events.ping import PingEvent
+from src.events.set import SetEvent
+from src.events.get import GetEvent
+from src.events.info import INFOEvent
+from src.events.config import ConfigEvent
+from src.constants import keywords_args_len, KEYWORDS
+from src.models.command import Command
 
 
 class MessageHandler:

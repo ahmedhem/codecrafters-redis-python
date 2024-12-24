@@ -1,6 +1,6 @@
-from app.constants import KEYWORDS
-from app.encoder import Encoder
-from app.events.base import Event
+from src.constants import KEYWORDS
+from src.encoder import Encoder
+from src.events.base import Event
 
 
 class PingEvent(Event):

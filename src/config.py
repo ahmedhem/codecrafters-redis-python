@@ -4,6 +4,8 @@ class Config:
     db_nr = 0
     port = 6379
     role = "master"
+    master_host = None
+    master_port = None
 
     def __init__(self, dir=None, dbfilename=None, port=None):
         self.dir = dir or self.dir
@@ -21,3 +23,9 @@ class Config:
     @classmethod
     def set_port(cls, port):
         cls.port = port
+
+    @classmethod
+    def set_master_replica(cls, master_host, master_port):
+        cls.master_host = master_host
+        cls.master_port = int(master_port)
+

@@ -1,9 +1,8 @@
-import inspect
+from src.constants import KEYWORDS
+from src.encoder import Encoder
 
-from app.constants import KEYWORDS
-from app.encoder import Encoder
-from app.events.base import Event
-from app.info import Replication
+from src.events.base import Event
+from src.info import Replication
 
 INFO_commands_map: dict = {"replication": Replication}
 

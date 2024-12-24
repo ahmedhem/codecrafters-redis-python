@@ -1,12 +1,10 @@
 import argparse
 import asyncio
 
-from app.info import Replication
-from app.rdb_parser import RDBParser
-from app.message_handler import MessageHandler
-from app.config import Config
-from app.rdb_parser import RDBParser
-
+from src.info import Replication
+from src.message_handler import MessageHandler
+from src.config import Config
+from src.rdb_parser import RDBParser
 
 class ASYNCServer:
     def __init__(self):
@@ -25,18 +23,16 @@ class ASYNCServer:
 
     def handle_server_args(self):
         args = self.parse_arguments()
-        dir = args.dir
-        dbfilename = args.dbfilename
-        port = args.port
-        replicaof = args.replicaof
-        if dir:
-            Config.set_directory(dir)
-        if dbfilename:
-            Config.set_dbfilename(dbfilename)
-        if port:
-            Config.set_port(port)
-        if replicaof:
-            Replication.role = "slave"
+        if args.dir:
+            Config.set_directory(args.dir)
+        if args.dbfilename:
+            Config.set_dbfilename(args.dbfilename)
+        if args.port:
+            Config.set_port(args.port)
+        if args.replicaof:
+            host, port = args.replicaof.split(" ")
+            Config.set_master_replica(host, port)
+            Replication.start_replication()
 
     async def start(self):
         server = await asyncio.start_server(
@@ -65,3 +61,5 @@ class ASYNCServer:
         writer.close()
         await writer.wait_closed()
         print("Connection Closed")
+
+app = ASYNCServer()

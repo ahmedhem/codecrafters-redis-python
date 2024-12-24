@@ -1,6 +1,6 @@
 from typing import List
 
-from app.models.command import Command
+from src.models.command import Command
 
 
 class Event:

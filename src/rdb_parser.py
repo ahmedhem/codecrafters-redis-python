@@ -3,10 +3,10 @@ from __future__ import annotations
 import struct
 from datetime import datetime, timedelta
 from typing import BinaryIO
-from app.storage import Storage
+from src.storage import Storage
 import os
 
-from app.config import Config
+from src.config import Config
 
 
 class RDBParser:
