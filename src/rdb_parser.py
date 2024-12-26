@@ -49,7 +49,7 @@ class RDBParser:
 
     def parse(self):
         try:
-            with self.file or open(self.file_path, "rb") as self.file:
+            with open(self.file_path, "rb") as self.file:
                 magic_string = self.file.read(5)
                 if magic_string != b"REDIS":
                     raise Exception("Invalid magic string")
@@ -98,6 +98,7 @@ class RDBParser:
                         if not Storage.databases.get(database_nr):
                             Storage.assign_default()
 
+                        print(key, value)
                         Storage.databases[database_nr][key] = {
                             "value": value,
                             "type": value_type,

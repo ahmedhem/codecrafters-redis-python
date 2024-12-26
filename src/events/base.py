@@ -1,6 +1,7 @@
 from typing import List
 
 from src.models.command import Command
+from src.replication_config import replication_config
 
 
 class Event:

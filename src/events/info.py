@@ -2,9 +2,9 @@ from src.constants import KEYWORDS
 from src.encoder import Encoder
 
 from src.events.base import Event
-from src.replication_config import ReplicationConfig
+from src.replication_config import replication_config
 
-INFO_commands_map: dict = {"replication": ReplicationConfig}
+INFO_commands_map: dict = {"replication": replication_config}
 
 
 class INFOEvent(Event):
@@ -15,21 +15,11 @@ class INFOEvent(Event):
 
         if not self.commands[0].args:
             for cls in INFO_commands_map.values():
-                key_value_pairs.extend(
-                    [
-                        f"{i[0]}:{i[1]}"
-                        for i in vars(cls).items()
-                        if not i[0].startswith("__")
-                    ]
-                )
+                key_value_pairs.extend(cls.get_attr())
         else:
             value = self.commands[0].args[0]
             if value not in INFO_commands_map.keys():
                 raise ValueError(f"Command '{value}' is not supported")
-            key_value_pairs = [
-                f"{i[0]}:{i[1]}"
-                for i in vars(INFO_commands_map[value]).items()
-                if not i[0].startswith("__")
-            ]
-
+            key_value_pairs = INFO_commands_map[value].get_attr()
+        print(key_value_pairs)
         return [Encoder(lines=key_value_pairs).execute()]

@@ -1,7 +1,7 @@
 from src.constants import KEYWORDS
 from src.encoder import Encoder
 from src.events.base import Event
-from src.replication_config import ReplicationConfig
+from src.replication_config import replication_config
 
 
 class REPLCONFEvent(Event):
@@ -18,6 +18,6 @@ class REPLCONFEvent(Event):
         conf_value = self.commands[0].args[1]
 
         if conf_key == "listening-port":
-            ReplicationConfig.add_replica_port(int(conf_value))
+            replication_config.add_replica_config(port = int(conf_value))
 
         return [Encoder(lines=["OK"]).execute()]
