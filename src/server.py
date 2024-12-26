@@ -82,7 +82,6 @@ class SocketServer:
         if not Config.is_replica and event == "SET":
             print("Brodcasting....", len(self.client_sockets))
             for client in self.client_sockets:
-                print(client)
                 client.send(data)
 
     def handle_connection(self, client_socket: socket.socket, address: tuple):
@@ -99,13 +98,12 @@ class SocketServer:
                     if not data:
                         break
                     print(f"Received: {data}")
-                    responses, event = MessageHandler(msg=data).execute()
+                    responses = MessageHandler(msg=data).execute()
 
                     if responses:
-                        for response in responses:
+                        for response,event in responses:
                             client_socket.sendall(response)
-
-                    self.handle_propagation(client_socket, event, data)
+                            self.handle_propagation(client_socket, event, data)
                 except socket.timeout:
                     continue
                 except Exception as e:

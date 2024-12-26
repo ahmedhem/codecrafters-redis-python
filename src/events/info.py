@@ -21,5 +21,4 @@ class INFOEvent(Event):
             if value not in INFO_commands_map.keys():
                 raise ValueError(f"Command '{value}' is not supported")
             key_value_pairs = INFO_commands_map[value].get_attr()
-        print(key_value_pairs)
         return [Encoder(lines=key_value_pairs).execute()]

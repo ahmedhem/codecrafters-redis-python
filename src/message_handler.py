@@ -1,4 +1,3 @@
-from http.client import responses
 from select import select
 from typing import List
 
@@ -82,13 +81,15 @@ class MessageHandler:
     def execute(self):
         try:
             commands = self.format_command(Decoder(msg=self.msg).execute())
-            event = commands[0].action
-            cls = self.event_map.get(event)
+            responses = []
+            for command in commands:
 
-            if not cls:
-                raise ValueError(f"Unknown event type: {event}")
-            response = cls(commands=commands).execute()
-            from src.main import app
-            return response, event
+                event = command.action
+                cls = self.event_map.get(event)
+                if not cls:
+                    raise ValueError(f"Unknown event type: {event}")
+                responses.append((cls(commands=commands).execute(), event))
+
+            return responses
         except Exception as e:
             print("Exception in message handling: ", e),

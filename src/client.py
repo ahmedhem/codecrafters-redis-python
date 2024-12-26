@@ -40,7 +40,6 @@ def communicate_with_server(host: str, port: int, messages: List[bytes],
                         continue
 
                 if response_chunks:
-                    print(response_chunks)
                     responses.append(b''.join(response_chunks))
 
     except socket.error as e:
