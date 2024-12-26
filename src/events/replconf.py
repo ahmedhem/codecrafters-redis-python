@@ -6,7 +6,7 @@ from src.replication_config import replication_config
 
 class REPLCONFEvent(Event):
     supported_actions: list = [KEYWORDS.REPLCONF.value]
-    allowed_conf = ["listening-port", "capa"]
+    allowed_conf = ["listening-port", "capa", "GETACK"]
 
     def execute(self):
         if len(self.commands[0].args) % 2 == 1:
@@ -20,4 +20,7 @@ class REPLCONFEvent(Event):
         if conf_key == "listening-port":
             replication_config.add_replica_config(port=int(conf_value))
 
-        return [Encoder(lines=["OK"]).execute()]
+        if conf_key == "GETACK":
+            return [Encoder(lines="REPLCONF ACK 0".split()).execute()]
+        else:
+            return [Encoder(lines=["OK"]).execute()]
