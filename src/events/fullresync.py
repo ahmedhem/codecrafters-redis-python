@@ -10,6 +10,5 @@ class FULLRESYNC(Event):
     def execute(self):
 
         rdb_file = self.commands[0].args[0]
-        RDBParser(file = rdb_file).parse()
         print("resyncing")
-        return [Encoder(lines=["OK"]).execute()]
+        return Encoder(lines=["OK"]).execute()

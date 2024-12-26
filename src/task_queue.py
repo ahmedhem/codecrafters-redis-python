@@ -3,6 +3,7 @@ from threading import Thread
 import queue
 import time
 
+
 class TaskQueue:
     def __init__(self, num_workers=1):
         self.num_workers = num_workers
@@ -27,11 +28,5 @@ class TaskQueue:
 
     def start(self):
         for i in range(self.num_workers):
-            thread = threading.Thread(target=self.worker, args=(i, ))
+            thread = threading.Thread(target=self.worker, args=(i,))
             thread.start()
-
-
-
-
-
-

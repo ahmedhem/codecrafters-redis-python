@@ -18,6 +18,6 @@ class REPLCONFEvent(Event):
         conf_value = self.commands[0].args[1]
 
         if conf_key == "listening-port":
-            replication_config.add_replica_config(port = int(conf_value))
+            replication_config.add_replica_config(port=int(conf_value))
 
         return [Encoder(lines=["OK"]).execute()]

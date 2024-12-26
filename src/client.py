@@ -4,8 +4,9 @@ from typing import List, Tuple, Optional
 import select
 
 
-def communicate_with_server(host: str, port: int, messages: List[bytes],
-                            timeout: float = 2) -> List[bytes]:
+def communicate_with_server(
+    host: str, port: int, messages: List[bytes], timeout: float = 2
+) -> List[bytes]:
     responses = []
 
     try:
@@ -40,7 +41,7 @@ def communicate_with_server(host: str, port: int, messages: List[bytes],
                         continue
 
                 if response_chunks:
-                    responses.append(b''.join(response_chunks))
+                    responses.append(b"".join(response_chunks))
 
     except socket.error as e:
         print(f"Socket error occurred: {e}")

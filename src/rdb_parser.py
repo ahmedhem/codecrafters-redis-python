@@ -10,7 +10,7 @@ from src.config import Config
 
 
 class RDBParser:
-    def __init__(self, file = None):
+    def __init__(self, file=None):
         self.file_path = os.path.join(Config.dir, Config.dbfilename)
         self.file: BinaryIO | None = file
         self.version = b"0011"  # Default RDB version
@@ -98,6 +98,7 @@ class RDBParser:
                         if not Storage.databases.get(database_nr):
                             Storage.assign_default()
 
+                        print(key, value)
                         Storage.databases[database_nr][key] = {
                             "value": value,
                             "type": value_type,

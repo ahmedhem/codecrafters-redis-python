@@ -15,8 +15,8 @@ class PSYNCEvent(Event):
             lines=f"FULLRESYNC {replication_config.master_replid} {replication_config.master_repl_offset}".split(),
             to_simple_string=True,
         ).execute()
-        with open(os.path.join(Config.dir, Config.dbfilename), 'rb') as file:
+        with open(os.path.join(Config.dir, Config.dbfilename), "rb") as file:
             data = file.read()
-        rfb_file_msg = f"${len(data)}\r\n".encode('utf-8')
+        rfb_file_msg = f"${len(data)}\r\n".encode("utf-8")
 
         return [full_resync_msg, rfb_file_msg, data]

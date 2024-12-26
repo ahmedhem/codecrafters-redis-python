@@ -17,13 +17,16 @@ from src.events.config import ConfigEvent
 from src.constants import keywords_args_len, KEYWORDS
 from src.models.command import Command
 from src.replication_config import replication_config
+from src.logger import logger
 
 
 class MessageHandler:
     msg: bytes
+    buffered_msg = []
 
-    def __init__(self, msg: bytes):
+    def __init__(self, msg: bytes = None, buffered_msg=None):
         self.msg = msg
+        self.buffered_msg = buffered_msg
         self.event_map = {
             "PING": PingEvent,
             "ECHO": EchoEvent,
@@ -37,59 +40,65 @@ class MessageHandler:
             "FULLRESYNC": FULLRESYNC,
         }
 
-    def format_command(self, args) -> List[Command]:
+    def format_command(self, commands_decoded) -> List[Command]:
         response: List[Command] = []
-        pos = 0
+        logger.log("Formatting Started")
+        for args in commands_decoded:
+            pos = 0
+            while pos < len(args):
+                if args[pos] not in [key.value for key in KEYWORDS]:
+                    logger.log(f"{args[pos]} is not a action")
 
-        while pos < len(args):
-            if args[pos] not in [key.value for key in KEYWORDS]:
-                raise Exception(f"{args[pos]} is not a action")
+                action_args_count = 0
+                while (
+                    pos + action_args_count + 1 < len(args)
+                    and args[pos + action_args_count + 1]
+                    not in keywords_args_len.keys()
+                ):
+                    action_args_count += 1
 
-            action_args_count = 0
-            while (
-                pos + action_args_count + 1 < len(args)
-                and args[pos + action_args_count + 1] not in keywords_args_len.keys()
-            ):
-                action_args_count += 1
+                action = args[pos]
+                if action_args_count > keywords_args_len[action]:
+                    logger.log(
+                        f"action {action} only take {keywords_args_len[action]} arguments but {action_args_count} given {args} {self.msg}"
+                    )
 
-            action = args[pos]
-            if action_args_count > keywords_args_len[action]:
-                raise Exception(
-                    f"action {action} only take {keywords_args_len} arguments"
+                response.append(
+                    Command(
+                        action=action,
+                        args=(
+                            args[pos + 1 : pos + action_args_count + 1]
+                            if action_args_count > 0
+                            else []
+                        ),
+                    )
                 )
-
-            response.append(
-                Command(
-                    action=action,
-                    args=(
-                        args[pos + 1 : pos + action_args_count + 1]
-                        if action_args_count > 0
-                        else []
-                    ),
-                )
-            )
-            pos = pos + action_args_count + 1
+                pos = pos + action_args_count + 1
+        logger.log("Formatting Ended")
 
         return response
-
-    def propagate(self):
-        from src.main import app
-        for host, port in replication_config.replicas_config_pending:
-            print("HOST AND PORT IS ", host, port)
-            app.send_msg(host, port, [self.msg])
 
     def execute(self):
         try:
             commands = self.format_command(Decoder(msg=self.msg).execute())
             responses = []
+            can_replicate = False
             for command in commands:
+                logger.log(f"SETSET COMMANDS: f{self.msg}")
 
                 event = command.action
+                logger.log(event)
+                logger.log(command.args)
                 cls = self.event_map.get(event)
                 if not cls:
                     raise ValueError(f"Unknown event type: {event}")
-                responses.append((cls(commands=commands).execute(), event))
+                logger.log(command.action)
+                can_replicate |= command.action == "SET"
+                response_msg = cls(commands=[command]).execute()
+                logger.log(response_msg)
+                responses.extend(response_msg)
 
-            return responses
+
+            return responses, can_replicate
         except Exception as e:
-            print("Exception in message handling: ", e),
+            logger.log(f"Exception in message handling: {e}"),

@@ -18,9 +18,15 @@ class ReplicationConfig:
         pass
 
     def get_attr(self):
-        return [f"role:{self.role}", f'master_replid:{self.master_replid}', f'master_repl_offset:{self.master_repl_offset}']
+        return [
+            f"role:{self.role}",
+            f"master_replid:{self.master_replid}",
+            f"master_repl_offset:{self.master_repl_offset}",
+        ]
+
     def start_replication(self):
         from src.main import app
+
         self.role = "slave"
         messages = [
             Encoder(lines=["PING"], to_array=True).execute(),
@@ -32,20 +38,22 @@ class ReplicationConfig:
         ]
 
         responses = app.send_msg(Config.master_host, Config.master_port, messages)
-        RDBParser(file = responses[-1]).parse()
+        RDBParser(file=responses[-1]).parse()
 
     @classmethod
     def add_replica_config(cls, port):
-        cls.replicas_config.add(('127.0.0.1', port))
-        cls.replicas_config_pending.add(('127.0.0.1', port))
+        cls.replicas_config.add(("127.0.0.1", port))
+        cls.replicas_config_pending.add(("127.0.0.1", port))
 
     @classmethod
     def start_rdb_sync(cls):
         from src.main import app
-        with open(os.path.join(Config.dir, Config.dbfilename), 'rb') as file:
+
+        with open(os.path.join(Config.dir, Config.dbfilename), "rb") as file:
             data = file.read()
-        rfb_file_msg = f"${len(data)}\r\n".encode('utf-8')
+        rfb_file_msg = f"${len(data)}\r\n".encode("utf-8")
         for host, port in cls.replicas_config_pending:
             app.send_msg(host, port, [rfb_file_msg, data])
+
 
 replication_config = ReplicationConfig()
