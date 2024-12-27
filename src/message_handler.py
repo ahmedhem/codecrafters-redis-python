@@ -25,10 +25,13 @@ class MessageHandler:
     msg: bytes
     buffered_msg = []
     is_from_master = False
-    def __init__(self, msg: bytes = None, buffered_msg=None, is_from_master=False):
+    app = None
+    def __init__(self, msg: bytes = None, buffered_msg=None, is_from_master=False, app=None):
         self.msg = msg
         self.buffered_msg = buffered_msg
         self.is_from_master = is_from_master
+        self.app = app
+        logger.log(app)
         self.event_map = {
             "PING": PingEvent,
             "ECHO": EchoEvent,
@@ -104,7 +107,7 @@ class MessageHandler:
                 if not cls:
                     raise ValueError(f"Unknown event type: {event}")
                 can_replicate |= command.action == "SET"
-                response_msg = cls(commands=[command]).execute()
+                response_msg = cls(app = self.app, commands=[command]).execute()
                 if not self.is_from_master or event in self.can_send_response_to_master:
                     responses.extend(response_msg)
 

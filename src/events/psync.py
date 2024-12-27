@@ -18,5 +18,4 @@ class PSYNCEvent(Event):
         with open(os.path.join(Config.dir, Config.dbfilename), "rb") as file:
             data = file.read()
         rfb_file_msg = f"${len(data)}\r\n".encode("utf-8")
-
         return [full_resync_msg, rfb_file_msg, data]

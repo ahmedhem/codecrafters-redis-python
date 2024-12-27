@@ -7,9 +7,10 @@ from src.replication_config import replication_config
 class Event:
     commands: List[Command]
     supported_actions: list = []
-
-    def __init__(self, commands: List[Command]):
+    app: None
+    def __init__(self, commands: List[Command], app = None):
         self.commands = commands
+        self.app = app
         if not self.validate_commands():
             raise Exception(
                 f"Some commands are not supported for event {self.commands[0].action}"
