@@ -15,6 +15,7 @@ from src.events.psync import PSYNCEvent
 from src.events.replconf import REPLCONFEvent
 from src.events.config import ConfigEvent
 from src.constants import keywords_args_len, KEYWORDS
+from src.events.wait import WaitEvent
 from src.models.command import Command
 from src.replication_config import replication_config
 from src.logger import logger
@@ -39,6 +40,7 @@ class MessageHandler:
             "REPLCONF": REPLCONFEvent,
             "PSYNC": PSYNCEvent,
             "FULLRESYNC": FULLRESYNC,
+            "WAIT": WaitEvent,
         }
         self.can_send_response_to_master = ["REPLCONF"]
         self.not_allowed_replica_command = ["SET"]

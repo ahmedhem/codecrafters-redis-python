@@ -1,10 +1,13 @@
 from typing import List
 
+from src.logger import logger
+
 
 class Encoder:
     lines: List[str]
     to_array: bool
     to_bulk: bool
+    to_int: bool
     to_simple_string: bool
     is_file: bool
 
@@ -15,21 +18,26 @@ class Encoder:
         to_bulk: bool = True,
         to_simple_string: bool = False,
         is_file: bool = False,
+        to_int:bool = False,
     ):
         self.lines = lines
         self.to_array = to_array
         self.to_bulk = to_bulk
         self.to_simple_string = to_simple_string
         self.is_file = is_file
+        self.to_int = to_int
 
     def execute(self):
         if self.lines and self.lines[0] == "-1":  # None
             return "$-1\r\n".encode("utf-8")
 
         response = ""
-        if self.is_file:
+        if self.to_int:
+            response = f":{self.lines[0]}\r\n"
+            logger.log(response)
+        elif self.is_file:
             response = f"{len(self.lines[0])}\r\n" + self.lines[0]
-        if self.to_simple_string:
+        elif self.to_simple_string:
             response = f"+ {' '.join(self.lines)} \r\n"
         elif self.to_array:
             response += "*" + str(len(self.lines)) + "\r\n"
