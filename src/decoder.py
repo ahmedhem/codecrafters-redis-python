@@ -26,45 +26,37 @@ class Decoder:
         except IndexError:
             raise
 
-    def _validate_protocol_bulk_string(self, command) -> bool:
-        try:
-            if not command[0].startswith("$") or not command[0][1:].isdigit():
-                return False
+    def split_messages(self):
+        splitted_messages = []
+        pos = 0
+        while pos < len(self.lines):
+            cur = pos + 1
+            cur_msg = self.lines[pos].encode() + b"\r\n"
+            while cur < len(self.lines) and (self.lines[cur][0] not in ["*"] or len(self.lines[cur]) == 1):
+                cur_msg +=  self.lines[cur].encode() + b"\r\n"
+                cur += 1
+            pos = cur
+            splitted_messages.append(cur_msg)
 
-            string_len = int(command[0][1:])
-            if len(command[1]) != string_len:
-                return False
-
-            return True
-        except IndexError:
-            raise
+        return splitted_messages
 
     def execute(self) -> List[List[str]]:
         logger.log("Decoding Started")
-        response = []
+        decoded_response = []
         pos = 0
         while pos < len(self.lines):
             args = []
             command = [self.lines[pos]]
             cur = pos + 1
-            while cur < len(self.lines) and (self.lines[cur][0] not in ["*"]):
+            while cur < len(self.lines) and (self.lines[cur][0] not in ["*"] or len(self.lines[cur]) == 1):
                 command.append(self.lines[cur])
                 cur += 1
             pos = cur
-            logger.log(" ".join(command))
-            if command[0][0] == "+":  # in form of spaces e.g +Echo Hello
-                args = command[0].split()
-            elif (
-                command[0][0] == "*"
-            ):  # in form of redis protocol e.g *1\r\n$4\r\nPING\r\n
-                self._validate_protocol_array(command)
-                for i in range(2, len(command), 2):
-                    args.append(command[i])
-            elif command[0][0] == "$":
-                self._validate_protocol_bulk_string(command)
-                args.append(command[1])
+            self._validate_protocol_array(command)
+            for i in range(2, len(command), 2):
+                args.append(command[i])
 
-            response.append(args)
+            decoded_response.append(args)
         logger.log("Decoding Ended")
 
-        return response
+        return decoded_response

@@ -10,7 +10,7 @@ from src.rdb_parser import RDBParser
 class ReplicationConfig:
     role = "master"
     master_replid = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb"
-    master_repl_offset = "0"
+    master_repl_offset = 0
     replicas_config: set = set()
     replicas_config_pending: set = set()
 

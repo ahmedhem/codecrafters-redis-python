@@ -23,10 +23,11 @@ from src.logger import logger
 class MessageHandler:
     msg: bytes
     buffered_msg = []
-
-    def __init__(self, msg: bytes = None, buffered_msg=None):
+    is_from_master = False
+    def __init__(self, msg: bytes = None, buffered_msg=None, is_from_master=False):
         self.msg = msg
         self.buffered_msg = buffered_msg
+        self.is_from_master = is_from_master
         self.event_map = {
             "PING": PingEvent,
             "ECHO": EchoEvent,
@@ -39,6 +40,8 @@ class MessageHandler:
             "PSYNC": PSYNCEvent,
             "FULLRESYNC": FULLRESYNC,
         }
+        self.can_send_response_to_master = ["REPLCONF"]
+        self.not_allowed_replica_command = ["SET"]
 
     def format_command(self, commands_decoded) -> List[Command]:
         response: List[Command] = []
@@ -80,24 +83,31 @@ class MessageHandler:
 
     def execute(self):
         try:
+            split_msg = Decoder(msg=self.msg).split_messages()
+            l = 0
+            for msg in split_msg:
+                l += len(msg)
+            logger.log(f"splitted {split_msg}")
             commands = self.format_command(Decoder(msg=self.msg).execute())
+            logger.log(len(split_msg))
+            logger.log(len(commands))
+
             responses = []
             can_replicate = False
-            for command in commands:
-                logger.log(f"SETSET COMMANDS: f{self.msg}")
-
+            for idx, command in enumerate(commands):
                 event = command.action
-                logger.log(event)
-                logger.log(command.args)
+                if Config.role == "slave" and event in self.not_allowed_replica_command:
+                    raise Exception(f"{event} is not allowed for a replica")
                 cls = self.event_map.get(event)
                 if not cls:
                     raise ValueError(f"Unknown event type: {event}")
-                logger.log(command.action)
                 can_replicate |= command.action == "SET"
                 response_msg = cls(commands=[command]).execute()
-                logger.log(response_msg)
-                responses.extend(response_msg)
-                replication_config.master_repl_offset += len(self.msg)
+                if not self.is_from_master or event in self.can_send_response_to_master:
+                    responses.extend(response_msg)
+
+                if Config.is_replica:
+                    replication_config.master_repl_offset += len(split_msg[idx])
 
             return responses, can_replicate
         except Exception as e:

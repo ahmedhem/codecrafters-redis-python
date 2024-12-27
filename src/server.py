@@ -63,7 +63,6 @@ class RedisServer:
         while self.is_running:
             try:
                 client_socket, address = self.server_socket.accept()
-                logger.log(client_socket)
                 client_thread = threading.Thread(
                     target=self._handle_client, args=(client_socket, address)
                 )
@@ -158,10 +157,11 @@ class RedisServer:
             command = b"*3\r\n" + command # hardcoded for now until we figure out why the tester send the format like this
 
             self._load_rdb(rdb_data)
-            responses = self._process_command(command)
-            if responses:
-                for response in responses:
-                    self.master_connection.sendall(response)
+            if command:
+                responses = self._process_command(command)
+                if responses:
+                    for response in responses:
+                        self.master_connection.sendall(response)
             # Update server state
             self.state = ServerState.REPLICA
             self.propagation_thread = threading.Thread(
@@ -191,25 +191,6 @@ class RedisServer:
             for replica_socket in dead_replicas:
                 self.replicas.remove(replica_socket)
 
-    def _receive_rdb(self):
-        """Handle receiving and loading RDB file"""
-        try:
-            # Read the FULLRESYNC response
-            response = self.master_connection.recv(1024)
-            logger.log( f"FULL RESYNC {response}")
-            data = response.splitlines()
-            rdb_data = b'\r\n'.join(data[2:4])
-            command = b'\r\n'.join(data[4:len(data)])
-            command = b"*3\r\n" + command # hardcoded for now until we figure out why the tester send the format like this
-            logger.log(rdb_data)
-            logger.log(command)
-
-            self._load_rdb(rdb_data)
-            self._process_command(command)
-        except Exception as e:
-            logger.log(f"Error receiving RDB: {e}")
-            raise
-
     def _load_rdb(self, rdb_data: bytes = None):
         logger.log("Loading RDB...")
         """Load data from RDB file into memory"""
@@ -223,7 +204,7 @@ class RedisServer:
         """Process Redis commands based on server state and source"""
         try:
             logger.log(ServerState.MASTER)
-            responses, can_replicate = MessageHandler(msg=data).execute()
+            responses, can_replicate = MessageHandler(msg=data, is_from_master=is_from_master).execute()
             logger.log(f"can replicate {can_replicate}")
             if self.state == ServerState.MASTER and can_replicate:
                 self._propagate_to_replicas(data)
@@ -281,7 +262,9 @@ class RedisServer:
                 if not command:
                     continue
                 logger.log(f"Found command {command}")
-                self._process_command(command, is_from_master=True)
+                responses = self._process_command(command, is_from_master=True)
+                for res in responses:
+                    self.master_connection.send(res)
 
         except Exception as e:
             logger.log(f"Error in propagation thread: {e}")
