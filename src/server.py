@@ -30,6 +30,7 @@ class RedisServer:
         self.master_info: Optional[Tuple[str, int]] = None
         self.accept_thread = None
         self.is_running = False
+        self.is_client_blocked = False
         self.master_connection = None
         self.replication_buffer = []
         self.data_store: Dict[str, Any] = {}  # Simple key-value store
@@ -37,6 +38,7 @@ class RedisServer:
         self.args = self._parse_arguments()
         self.replicas: List[Tuple[socket.socket, Tuple[str, int]]] = []
         self.replica_lock = threading.Lock()
+        self.success_ack_replica_count = 0
 
         if self.args.replicaof:
             master_host, master_port = self.args.replicaof.split(" ")
@@ -75,7 +77,7 @@ class RedisServer:
     def _handle_client(self, client_socket: socket.socket, address: Tuple[str, int]):
         """Handle individual client connections"""
         try:
-            while self.is_running:
+            while self.is_running and not self.is_client_blocked:
                 data = client_socket.recv(1024)
                 logger.log(f"Master Recieved {data}")
                 if not data:
@@ -261,10 +263,10 @@ class RedisServer:
                 command = self.master_connection.recv(1024)
                 if not command:
                     continue
-                logger.log(f"Found command {command}")
                 responses = self._process_command(command, is_from_master=True)
-                for res in responses:
+                for idx, res in enumerate(responses):
                     self.master_connection.send(res)
+                    self.success_ack_replica_count = idx + 1
 
         except Exception as e:
             logger.log(f"Error in propagation thread: {e}")
