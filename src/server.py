@@ -183,7 +183,7 @@ class RedisServer:
                     replica_socket[0].sendall(command)
                 except Exception as e:
                     logger.log(
-                        f"Error handling replica at {self.replicas[replica_socket][0]}:{self.replicas[replica_socket][1]}",
+                        f"Error handling replica at {self.replicas[replica_socket[1][0]]}:{self.replicas[replica_socket[0]]}",
                         e,
                     )
                     dead_replicas.append(replica_socket)
@@ -323,6 +323,6 @@ class RedisServer:
         with self.replica_lock:
             for replica_socket in self.replicas:
                 try:
-                    replica_socket.close()
+                    replica_socket[0].close()
                 except Exception:
                     pass

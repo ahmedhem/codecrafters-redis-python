@@ -21,6 +21,6 @@ class REPLCONFEvent(Event):
         logger.log(f"WE ARE HERE {self.commands[0].args}")
 
         if conf_key == "GETACK":
-            return [Encoder(lines="REPLCONF ACK 0".split(), to_array=True).execute()]
+            return [Encoder(lines=f"REPLCONF ACK {replication_config.master_repl_offset}".split(), to_array=True).execute()]
         else:
             return [Encoder(lines=["OK"]).execute()]

@@ -97,6 +97,7 @@ class MessageHandler:
                 response_msg = cls(commands=[command]).execute()
                 logger.log(response_msg)
                 responses.extend(response_msg)
+                replication_config.master_repl_offset += len(self.msg)
 
             return responses, can_replicate
         except Exception as e:
