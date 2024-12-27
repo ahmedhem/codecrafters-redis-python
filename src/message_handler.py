@@ -98,7 +98,6 @@ class MessageHandler:
                 logger.log(response_msg)
                 responses.extend(response_msg)
 
-
             return responses, can_replicate
         except Exception as e:
             logger.log(f"Exception in message handling: {e}"),

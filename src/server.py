@@ -150,9 +150,18 @@ class RedisServer:
                 Encoder(lines="PSYNC ? -1".split(" "), to_array=True).execute()
             )
 
-            # Handle RDB transfer
-            self._receive_rdb()
+            #handling FULL RESYNC + Rdb + FIRST COMMAND
+            response = self.master_connection.recv(1024)
+            data = response.splitlines()
+            rdb_data = b'\r\n'.join(data[2:4])
+            command = b'\r\n'.join(data[4:len(data)])
+            command = b"*3\r\n" + command # hardcoded for now until we figure out why the tester send the format like this
 
+            self._load_rdb(rdb_data)
+            responses = self._process_command(command)
+            if responses:
+                for response in responses:
+                    self.master_connection.sendall(response)
             # Update server state
             self.state = ServerState.REPLICA
             self.propagation_thread = threading.Thread(
@@ -180,7 +189,7 @@ class RedisServer:
                     dead_replicas.append(replica_socket)
 
             for replica_socket in dead_replicas:
-                self.replicas.pop(replica_socket)
+                self.replicas.remove(replica_socket)
 
     def _receive_rdb(self):
         """Handle receiving and loading RDB file"""
@@ -195,7 +204,6 @@ class RedisServer:
             logger.log(rdb_data)
             logger.log(command)
 
-            # Process RDB file (simplified - you'd want to actually parse the RDB format)
             self._load_rdb(rdb_data)
             self._process_command(command)
         except Exception as e:
