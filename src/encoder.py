@@ -28,6 +28,8 @@ class Encoder:
         self.to_int = to_int
 
     def execute(self):
+        if not self.lines:
+            return b""
         if self.lines and self.lines[0] == "-1":  # None
             return "$-1\r\n".encode("utf-8")
 

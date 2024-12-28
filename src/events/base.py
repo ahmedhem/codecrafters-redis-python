@@ -1,13 +1,13 @@
-from typing import List
+from typing import List, Dict, Type, Callable, Optional
 
+from src.logger import logger
 from src.models.command import Command
-from src.replication_config import replication_config
 
 
 class Event:
     commands: List[Command]
     supported_actions: list = []
-    app: None
+    app = None
     def __init__(self, commands: List[Command], app = None):
         self.commands = commands
         self.app = app
@@ -25,3 +25,23 @@ class Event:
 
     def execute(self):
         pass
+
+
+class RedisCommandRegistry:
+    """Registry for Redis commands and their handlers."""
+    _commands: Dict[str, Type[Event]] = {}
+
+    @classmethod
+    def register(cls, command_name: str) -> Callable:
+        """Decorator to register Redis command handlers."""
+
+        def decorator(event_class: Type[Event]) -> Type[Event]:
+            cls._commands[command_name] = event_class
+            return event_class
+
+        return decorator
+
+    @classmethod
+    def get_handler(cls, command_name: str) -> Optional[Type[Event]]:
+        """Get the handler class for a given command."""
+        return cls._commands.get(command_name)

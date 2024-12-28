@@ -41,3 +41,8 @@ class ValueType(Enum):
     SORTED_SET_ZIPLIST = 12
     HASH_ZIPLIST = 13
     LIST_ZIPLIST = 14
+
+class ServerState(Enum):
+    STANDALONE = "standalone"
+    REPLICA = "slave"
+    MASTER = "master"

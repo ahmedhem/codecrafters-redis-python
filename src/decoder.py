@@ -41,7 +41,6 @@ class Decoder:
         return splitted_messages
 
     def execute(self) -> List[List[str]]:
-        logger.log("Decoding Started")
         decoded_response = []
         pos = 0
         while pos < len(self.lines):
@@ -57,6 +56,5 @@ class Decoder:
                 args.append(command[i])
 
             decoded_response.append(args)
-        logger.log("Decoding Ended")
 
         return decoded_response

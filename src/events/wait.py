@@ -3,10 +3,11 @@ from time import sleep
 
 from src.constants import KEYWORDS
 from src.encoder import Encoder
-from src.events.base import Event
+from src.events.base import Event, RedisCommandRegistry
 from src.logger import logger
 
 
+@RedisCommandRegistry.register("WAIT")
 class WaitEvent(Event):
     supported_actions: list = [KEYWORDS.WAIT.value]
 
@@ -18,14 +19,18 @@ class WaitEvent(Event):
         time = datetime.utcnow()
         logger.log(replica_count)
         logger.log(timeout)
+
+        for idx, replica_socket in enumerate(self.app.replicas):
+            replica_socket[0].send(Encoder(lines="REPLCONF GETACK *".split(), to_array=True).execute())
+
         while True:
             current_time = datetime.utcnow()
+            synced_replicas_count = 0
+            for replica, offset in self.app.replicas_offset.items():
+                synced_replicas_count += offset >= self.app.master_offset
 
-            if self.app.success_ack_replica_count >= replica_count or (current_time - time).total_seconds() > timeout / 1000:
-                logger.log(f"succeded {self.app.success_ack_replica_count}")
-
+            if synced_replicas_count >= replica_count or (current_time - time).total_seconds() > timeout / 1000:
                 self.app.is_client_blocked = False
                 break
 
-        replica_confirmed = self.app.success_ack_replica_count
-        return [Encoder(lines=[f"{replica_confirmed}"], to_int =True).execute()]
+        return [Encoder(lines=[f"{synced_replicas_count}"], to_int =True).execute()]

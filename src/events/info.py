@@ -1,24 +1,21 @@
 from src.constants import KEYWORDS
 from src.encoder import Encoder
 
-from src.events.base import Event
-from src.replication_config import replication_config
-
-INFO_commands_map: dict = {"replication": replication_config}
+from src.events.base import Event, RedisCommandRegistry
 
 
+@RedisCommandRegistry.register("INFO")
 class INFOEvent(Event):
     supported_actions: list = [KEYWORDS.INFO.value]
 
     def execute(self):
         key_value_pairs = []
+        value = self.commands[0].args[0]
+        if value == "replication":
+            key_value_pairs = [
+                f"role:{self.app.state.value}",
+                f"master_replid:{self.app.master_replid}",
+                f"master_repl_offset:{self.app.master_repl_offset}",
+            ]
 
-        if not self.commands[0].args:
-            for cls in INFO_commands_map.values():
-                key_value_pairs.extend(cls.get_attr())
-        else:
-            value = self.commands[0].args[0]
-            if value not in INFO_commands_map.keys():
-                raise ValueError(f"Command '{value}' is not supported")
-            key_value_pairs = INFO_commands_map[value].get_attr()
         return [Encoder(lines=key_value_pairs).execute()]

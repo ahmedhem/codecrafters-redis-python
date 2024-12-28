@@ -5,27 +5,26 @@ import sys
 import threading
 from datetime import datetime
 from enum import Enum
+from http.client import responses
 from typing import Optional, Tuple, Dict, Any, List
 import time
 
 from src.config import Config
+from src.constants import ServerState
 from src.encoder import Encoder
 from src.message_handler import MessageHandler
 from src.rdb_parser import RDBParser
 from src.logger import logger
 
 
-class ServerState(Enum):
-    STANDALONE = "standalone"
-    REPLICA = "replica"
-    MASTER = "master"
-
-
 class RedisServer:
     success_ack_replica_count = 0
     is_running = False
     host = None
-    port = None
+    master_host = None
+    master_port = None
+    master_replid = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb"
+    master_repl_offset = 0
     server_socket = None
     state = ServerState.STANDALONE
     master_info: Optional[Tuple[str, int]] = None
@@ -35,8 +34,10 @@ class RedisServer:
     replication_buffer = []
     propagation_thread = None
     replicas: List[Tuple[socket.socket, Tuple[str, int]]] = []
+    replicas_offset: Dict[socket.socket, int] = {}
     replica_lock = None
-
+    client_socket: socket.socket = None
+    master_offset = 0
     def __init__(self, host: str = "localhost", port: int = 6379):
         self.replica_lock = threading.Lock()
         self.host = host
@@ -50,7 +51,6 @@ class RedisServer:
             self._initialize_as_master()
 
     def start_serving(self):
-        logger.log("Start Serving")
         """Start accepting connections before initiating replication"""
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -66,39 +66,36 @@ class RedisServer:
     def _accept_connections(self):
         """Handle incoming client connections"""
         while self.is_running:
-            try:
-                client_socket, address = self.server_socket.accept()
-                client_thread = threading.Thread(
-                    target=self._handle_client, args=(client_socket, address)
-                )
-                client_thread.daemon = True
-                client_thread.start()
-            except Exception as e:
-                if self.is_running:
-                    logger.log(f"Error accepting connection: {e}")
-
+                try:
+                    client_socket, address = self.server_socket.accept()
+                    client_thread = threading.Thread(
+                        target=self._handle_client, args=(client_socket, address)
+                    )
+                    client_thread.daemon = True
+                    client_thread.start()
+                except Exception as e:
+                    if self.is_running:
+                        logger.log(f"Error accepting connection: {e}")
     def _handle_client(self, client_socket: socket.socket, address: Tuple[str, int]):
         """Handle individual client connections"""
         try:
             while self.is_running:
-                if not self.is_client_blocked:
                     data = client_socket.recv(1024)
-                    logger.log(f"Master Recieved {data}")
                     if not data:
                         break
 
+                    self.client_socket = client_socket
                     is_replica_handshake = data ==  b'*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n'
                     if self.state == ServerState.MASTER and is_replica_handshake:
-                        logger.log("FOUND replica")
                         self.replicas.append((client_socket, address))
 
                     # Process commands based on current server state
                     responses = self._process_command(data, is_from_master=False)
                     for res in responses:
-                        logger.log(f"We will send reponse {res} {address}")
                         client_socket.send(res)
                     if is_replica_handshake:
-                        self.success_ack_replica_count += 1
+                        logger.log(("replica handshake found"))
+                        self.replicas_offset[client_socket] = 0
 
 
         except Exception as e:
@@ -108,7 +105,6 @@ class RedisServer:
 
     def _initialize_as_replica(self, master_host: str, master_port: int):
         """Initialize replication after server is already running"""
-        logger.log("replica initialization started")
         self.master_info = (master_host, master_port)
         if not self.is_running:
             self.start_serving()
@@ -126,21 +122,19 @@ class RedisServer:
     def _establish_replication(self):
         """Handle replication handshake and RDB transfer"""
         try:
+            self.state = ServerState.REPLICA
             # Connect to master
             self.master_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.master_connection.connect(self.master_info)
 
-            logger.log("Sending Ping Command to master")
-
             # Send PING
             self._send_to_master(b'*1\r\n$4\r\nPING\r\n')
             ping_response = self.master_connection.recv(1024)
-            logger.log(f"recv {ping_response} Command from master")
 
             # Send REPLCONF
             self._send_to_master(
                 Encoder(
-                    lines=f"REPLCONF listening-port {Config.port}".split(" "),
+                    lines=f"REPLCONF listening-port {self.port}".split(" "),
                     to_array=True,
                 ).execute(),
             )
@@ -162,16 +156,17 @@ class RedisServer:
             response = self.master_connection.recv(1024)
             data = response.splitlines()
             rdb_data = b'\r\n'.join(data[2:4])
-            command = b'\r\n'.join(data[4:len(data)])
-            command = b"*3\r\n" + command # hardcoded for now until we figure out why the tester send the format like this
             self._load_rdb(rdb_data)
-            if command:
-                responses = self._process_command(command)
-                if responses:
-                    for response in responses:
-                        self.master_connection.sendall(response)
+            if len(data) > 4:
+                command = b'\r\n'.join(data[4:len(data)])
+                self.client_socket = self.master_connection
+                if command:
+                    command = b"*3\r\n" + command  # hardcoded for now until we figure out why the tester send the format like thi
+                    responses = self._process_command(command)
+                    if responses:
+                        for response in responses:
+                            self.master_connection.sendall(response)
             # Update server state
-            self.state = ServerState.REPLICA
             self.propagation_thread = threading.Thread(
                 target=self._handle_master_propagation
             )
@@ -186,10 +181,8 @@ class RedisServer:
         with self.replica_lock:
             dead_replicas = []
             for idx, replica_socket in enumerate(self.replicas):
-                logger.log(f"Start Propagation to {replica_socket} {command}")
                 try:
-                    self.success_ack_replica_count = idx + 1
-                    replica_socket[0].sendall(command)
+                    replica_socket[0].send(command)
                 except Exception as e:
                     logger.log(
                         f"Error handling replica at {self.replicas[replica_socket[1][0]]}:{self.replicas[replica_socket[0]]}",
@@ -201,7 +194,6 @@ class RedisServer:
                 self.replicas.remove(replica_socket)
 
     def _load_rdb(self, rdb_data: bytes = None):
-        logger.log("Loading RDB...")
         """Load data from RDB file into memory"""
         # Simplified RDB loading - you'd want to implement proper RDB parsing
         RDBParser(file=rdb_data).parse()
@@ -212,36 +204,13 @@ class RedisServer:
     ) -> List[bytes]:
         """Process Redis commands based on server state and source"""
         try:
-            logger.log(ServerState.MASTER)
-            responses, can_replicate = MessageHandler(msg=data, is_from_master=is_from_master, app = self).execute()
-            logger.log(f"can replicate {can_replicate}")
-            if self.state == ServerState.MASTER and can_replicate:
-                self._propagate_to_replicas(data)
+            responses, to_replicate = MessageHandler(msg=data, is_from_master=is_from_master, app = self).execute()
+            if self.state == ServerState.MASTER and to_replicate:
+                self._propagate_to_replicas(to_replicate)
 
             return responses
         except Exception as e:
             return [f"-ERR {str(e)}\r\n".encode()]
-
-    def _read_until_crlf(self) -> bytes:
-        """Read from master until CRLF is found"""
-        buffer = []
-        while True:
-            char = self.master_connection.recv(1)
-            if not char:
-                break
-            buffer.append(char)
-            if len(buffer) >= 2 and buffer[-2:] == [b"\r", b"\n"]:
-                return b"".join(buffer[:-2])
-
-    def _read_exactly(self, n: int) -> bytes:
-        """Read exactly n bytes from master"""
-        data = b""
-        while len(data) < n:
-            chunk = self.master_connection.recv(min(n - len(data), 1024))
-            if not chunk:
-                break
-            data += chunk
-        return data
 
     def _send_to_master(self, data: bytes):
         """Send data to master with error handling"""
@@ -255,7 +224,6 @@ class RedisServer:
         """Handle master connection failure by attempting to reconnect"""
         while self.is_running and self.state == ServerState.REPLICA:
             try:
-                logger.log("Attempting to reconnect to master...")
                 self._establish_replication()
                 break
             except Exception as e:
@@ -267,12 +235,16 @@ class RedisServer:
         try:
             while self.is_running and self.state == ServerState.REPLICA:
                 # Read command from master
+
                 command = self.master_connection.recv(1024)
+
                 if not command:
                     continue
+                self.client_socket = self.master_connection
                 responses = self._process_command(command, is_from_master=True)
-                for idx, res in enumerate(responses):
-                    self.master_connection.send(res)
+                if responses:
+                    for idx, res in enumerate(responses):
+                        self.master_connection.send(res)
 
         except Exception as e:
             logger.log(f"Error in propagation thread: {e}")
@@ -292,10 +264,8 @@ class RedisServer:
             Config.set_dbfilename(args.dbfilename)
         if args.port:
             self.port = int(args.port)
-            Config.set_port(args.port)
         if args.replicaof:
-            master_host, master_port = args.replicaof.split(" ")
-            Config.set_master_replica(master_host, master_port)
+            self.master_host, self.master_port = args.replicaof.split(" ")
 
         return args
 

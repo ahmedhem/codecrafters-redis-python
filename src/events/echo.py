@@ -1,8 +1,9 @@
 from src.constants import KEYWORDS
 from src.encoder import Encoder
-from src.events.base import Event
+from src.events.base import Event, RedisCommandRegistry
 
 
+@RedisCommandRegistry.register("ECHO")
 class EchoEvent(Event):
     supported_actions: list = [KEYWORDS.ECHO.value]
 
