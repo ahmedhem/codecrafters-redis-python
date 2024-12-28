@@ -68,7 +68,7 @@ class MessageHandler:
                 response = event_handler(app=self.app,
                                          commands=[command]).execute()
                 # Add response if appropriate
-                if (self.app.state == ServerState.MASTER or
+                if response and (self.app.state == ServerState.MASTER or
                         command.action in self.returnable_commands):
 
                     responses.extend(response)

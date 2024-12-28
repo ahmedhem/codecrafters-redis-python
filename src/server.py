@@ -38,6 +38,7 @@ class RedisServer:
     replica_lock = None
     client_socket: socket.socket = None
     master_offset = 0
+
     def __init__(self, host: str = "localhost", port: int = 6379):
         self.replica_lock = threading.Lock()
         self.host = host

@@ -29,7 +29,7 @@ class Storage:
         return matched_keys
 
     @classmethod
-    def set(self, key, value, expiry_ms=None):
+    def set(self, key, value, type, expiry_ms=None):
         while self.databases_lock[Config.db_nr].get(key):
             continue
 
@@ -42,7 +42,7 @@ class Storage:
         self.databases[Config.db_nr][key] = {
             "value": value,
             "expire_time": expire_time,
-            "type": 0,
+            "type": type,
         }
 
         self.databases_lock[Config.db_nr][key] = False
@@ -53,6 +53,6 @@ class Storage:
             not self.databases[Config.db_nr][key].get("expire_time")
             or self.databases[Config.db_nr][key].get("expire_time") >= datetime.now()
         ):
-            return self.databases[Config.db_nr][key]["value"]
+            return self.databases[Config.db_nr][key]
 
-        return "-1"
+        return '-1'

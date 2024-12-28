@@ -1,6 +1,5 @@
 from typing import List, Dict, Type, Callable, Optional
 
-from src.logger import logger
 from src.models.command import Command
 
 

@@ -3,6 +3,8 @@ from __future__ import annotations
 import struct
 from datetime import datetime, timedelta
 from typing import BinaryIO
+
+from src.constants import ValueType, ValueType_MAP
 from src.storage import Storage
 import os
 
@@ -98,10 +100,9 @@ class RDBParser:
                         if not Storage.databases.get(database_nr):
                             Storage.assign_default()
 
-                        print(key, value)
                         Storage.databases[database_nr][key] = {
                             "value": value,
-                            "type": value_type,
+                            "type": ValueType_MAP[value_type],
                             "expire_time": expire_datetime,
                         }
         except FileNotFoundError:

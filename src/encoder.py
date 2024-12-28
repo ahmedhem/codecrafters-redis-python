@@ -40,7 +40,7 @@ class Encoder:
         elif self.is_file:
             response = f"{len(self.lines[0])}\r\n" + self.lines[0]
         elif self.to_simple_string:
-            response = f"+ {' '.join(self.lines)} \r\n"
+            response = f"+{' '.join(self.lines)}\r\n"
         elif self.to_array:
             response += "*" + str(len(self.lines)) + "\r\n"
             for word in self.lines:

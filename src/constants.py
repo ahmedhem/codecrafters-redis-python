@@ -12,6 +12,7 @@ keywords_args_len: {str: int} = {
     "PSYNC": 2,
     "FULLRESYNC": 1,
     "WAIT": 2,
+    "TYPE": 1,
 }
 
 
@@ -27,10 +28,11 @@ class KEYWORDS(Enum):
     PSYNC: str = "PSYNC"
     FULLRESYNC: str = "FULLRESYNC"
     WAIT: str = "WAIT"
+    TYPE: str = "TYPE"
 
 
 class ValueType(Enum):
-    STRING = 0
+    string = 0
     LIST = 1
     SET = 2
     SORTED_SET = 3
@@ -42,6 +44,9 @@ class ValueType(Enum):
     HASH_ZIPLIST = 13
     LIST_ZIPLIST = 14
 
+ValueType_MAP = {
+    0: "string"
+}
 class ServerState(Enum):
     STANDALONE = "standalone"
     REPLICA = "slave"
