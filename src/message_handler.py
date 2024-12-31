@@ -43,14 +43,9 @@ class MessageHandler:
     def execute(self) -> Tuple[List[bytes], bytes]:
         """Executes the received Redis commands and returns responses."""
         try:
-            logger.log("Starting decoding")
+            logger.log(self.msg)
             decoder = Decoder(msg=self.msg)
-
-            logger.log("finised decoding")
-            logger.log("Starting split")
-
             split_messages = decoder.split_messages()
-            logger.log("finised split")
 
             commands = self.format_command(decoder.execute())
 
