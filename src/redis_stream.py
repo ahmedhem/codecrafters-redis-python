@@ -15,7 +15,7 @@ class RadixNode:
 #
 class RedisStream:
     root: RadixNode
-    last_id: '0-0'
+    last_id = '0-0'
 
     def __init__(self):
         self.root: RadixNode = RadixNode()
