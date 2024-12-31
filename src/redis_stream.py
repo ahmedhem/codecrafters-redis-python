@@ -15,12 +15,20 @@ class RadixNode:
 #
 class RedisStream:
     root: RadixNode
+    last_id: '0-0'
 
     def __init__(self):
         self.root: RadixNode = RadixNode()
 
-    def XADD(self, stream_key, data):
+    def XADD(self, stream_key, data, id):
         current = self.root
+        if id <= "0-0":
+            raise Exception("The ID specified in XADD must be greater than 0-0")
+        if id <= self.last_id:
+            raise Exception("The ID specified in XADD is equal or smaller than the target stream top item")
+
+        self.last_id = id
+
         for idx in range(len(stream_key)):
             if current.children.get(stream_key[idx]) is not None:
                 current = current.children[stream_key[idx]]
@@ -69,6 +77,7 @@ class RedisStream:
     def read(self, stream_key):
         current = self.root
         idx = 0
+
         while idx < len(stream_key):
             if current.children.get(stream_key[idx]) is not None:
                 current = current.children[stream_key[idx]]
