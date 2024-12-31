@@ -1,5 +1,7 @@
 from enum import Enum
 
+INF = 1e9
+
 keywords_args_len: {str: int} = {
     "PING": 0,
     "SET": 4,
@@ -13,6 +15,7 @@ keywords_args_len: {str: int} = {
     "FULLRESYNC": 1,
     "WAIT": 2,
     "TYPE": 1,
+    "XADD": INF,
 }
 
 
@@ -29,6 +32,7 @@ class KEYWORDS(Enum):
     FULLRESYNC: str = "FULLRESYNC"
     WAIT: str = "WAIT"
     TYPE: str = "TYPE"
+    XADD: str = "XADD"
 
 
 class ValueType(Enum):

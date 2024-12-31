@@ -32,6 +32,7 @@ class Logger:
                 continue
             except Exception as e:
                 print(f"Logging error: {e}", flush=True)
+                raise e
 
     def log(self, message: str):
         self.log_queue.put((LogLevel.DEBUG.value, message))

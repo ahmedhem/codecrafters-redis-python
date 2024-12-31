@@ -15,12 +15,15 @@ class SetEvent(Event):
     def get_type(self):
         return ValueType_MAP[0]
 
+    def get_expiry_time(self):
+        for idx in range(len(self.commands[0].args) - 1):
+                if self.commands[0].args[idx] == 'px' and self.commands[0].args[idx + 1].isdigit():
+                    return int(self.commands[0].args[idx + 1])
+        return None
     def execute(self):
         self.key = self.commands[0].args[0]
         self.value = self.commands[0].args[1]
-        for idx in range(len(self.commands[0].args) - 1):
-                if self.commands[0].args[idx] == 'px' and self.commands[0].args[idx + 1].isdigit():
-                    self.expiry_time = int(self.commands[0].args[idx + 1])
+        self.expiry_time = self.get_expiry_time()
         logger.log(f"{self.key} {self.value}{self.expiry_time}")
 
         Storage.set(self.key, self.value, self.get_type(), self.expiry_time)
