@@ -1,3 +1,5 @@
+import math
+
 from src.constants import KEYWORDS
 from src.encoder import Encoder
 from src.events.base import Event, RedisCommandRegistry
@@ -17,8 +19,8 @@ class XRANGEEvent(Event):
 
         if start == '-':
             start = '0-0'
-        if start == '+':
-            start = f'{float('inf')}-0'
+        if end == '+':
+            end = f'{int(1e18)}-0'
 
         result = REDIS_STREAM.XRANGE(stream_key, start, end)
         res = []
