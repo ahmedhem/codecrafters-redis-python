@@ -17,8 +17,6 @@ class WaitEvent(Event):
         timeout = int(self.commands[0].args[1])
         self.app.is_client_blocked = True
         time = datetime.utcnow()
-        logger.log(replica_count)
-        logger.log(timeout)
 
         for idx, replica_socket in enumerate(self.app.replicas):
             replica_socket[0].send(Encoder(lines="REPLCONF GETACK *".split(), to_array=True).execute())

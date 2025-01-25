@@ -1,4 +1,5 @@
 import math
+from datetime import datetime
 
 from src.constants import KEYWORDS
 from src.encoder import Encoder
@@ -12,8 +13,19 @@ class XREADEvent(Event):
     supported_actions: list = [KEYWORDS.XREAD.value]
 
     def execute(self):
+        if str(self.commands[0].args[0]) == 'block':
+            time = datetime.utcnow()
+            timeout = int(self.commands[0].args[1])
+            while True:
+                current_time = datetime.utcnow()
+                synced_replicas_count = 0
+                for replica, offset in self.app.replicas_offset.items():
+                    synced_replicas_count += offset >= self.app.master_offset
 
-        streams_hardcoded_string = str(self.commands[0].args[0])
+                if (current_time - time).total_seconds() > timeout / 1000:
+                    break
+
+        streams_hardcoded_string = str(self.commands[0].args[0]) if str(self.commands[0].args[0]) != 'block' else str(self.commands[0].args[2])
         result = []
         response = []
         streams = []
