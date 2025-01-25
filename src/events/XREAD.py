@@ -14,22 +14,35 @@ class XREADEvent(Event):
     def execute(self):
 
         streams_hardcoded_string = str(self.commands[0].args[0])
-        stream_key = self.commands[0].args[1]
-        start = self.commands[0].args[2]
-        end = f'{int(1e18)}-0'
+        result = []
+        response = []
+        streams = []
+        times = []
+        for idx in range(1, int(len(self.commands[0].args) / 2 + 1)):
+            streams.append(self.commands[0].args[idx])
+        for idx in range(1 + int(len(self.commands[0].args) / 2), len(self.commands[0].args)):
+            times.append(self.commands[0].args[idx])
+        logger.log(streams)
+        logger.log(times)
+        for idx in range(len(streams)):
+            stream_key = streams[idx]
+            start = times[idx]
+            end = f'{int(1e18)}-0'
 
-        result = REDIS_STREAM.XRANGE(stream_key, start, end)
-        res = []
-        for time, entries in result.items():
+            result.append((stream_key, REDIS_STREAM.XRANGE(stream_key, start, end)))
+
+        for stream_key, values in result:
+            logger.log(result)
             now = [stream_key]
-            cur = [[time]]
-            values = []
-            for entry in entries:
-                for key, value in entry.items():
-                    values.append(key)
-                    values.append(value)
-            cur[0].append(values)
-            now.append(cur)
-            res.append(now)
-        logger.log(res)
-        return [Encoder(lines=res, to_array=True).execute()]
+            for time, entries in values.items():
+                cur = [[time]]
+                values = []
+                for entry in entries:
+                    for key, value in entry.items():
+                        values.append(key)
+                        values.append(value)
+                cur[0].append(values)
+                now.append(cur)
+            response.append(now)
+        logger.log(response)
+        return [Encoder(lines=response, to_array=True).execute()]
