@@ -17,6 +17,8 @@ class XRANGEEvent(Event):
 
         if start == '-':
             start = '0-0'
+        if start == '+':
+            start = f'{float('inf')}-0'
 
         result = REDIS_STREAM.XRANGE(stream_key, start, end)
         res = []
