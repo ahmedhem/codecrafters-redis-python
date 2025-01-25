@@ -1,5 +1,6 @@
 from typing import List, Dict, Type, Callable, Optional
 
+from src.logger import logger
 from src.models.command import Command
 
 
@@ -17,7 +18,8 @@ class Event:
 
     def validate_commands(self) -> bool:
         for command in self.commands:
-            if command.action not in self.supported_actions:
+            logger.log(command.action.upper())
+            if command.action not in self.supported_actions and command.action.upper() not in self.supported_actions:
                 return False
 
         return True
@@ -36,6 +38,7 @@ class RedisCommandRegistry:
 
         def decorator(event_class: Type[Event]) -> Type[Event]:
             cls._commands[command_name] = event_class
+            cls._commands[command_name.lower()] = event_class
             return event_class
 
         return decorator

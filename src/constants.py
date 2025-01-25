@@ -16,6 +16,7 @@ keywords_args_len: {str: int} = {
     "WAIT": 2,
     "TYPE": 1,
     "XADD": INF,
+    "XRANGE": 4,
 }
 
 
@@ -33,6 +34,7 @@ class KEYWORDS(Enum):
     WAIT: str = "WAIT"
     TYPE: str = "TYPE"
     XADD: str = "XADD"
+    XRANGE: str = "XRANGE"
 
 
 class ValueType(Enum):

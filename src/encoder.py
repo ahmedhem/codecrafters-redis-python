@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 
 from src.logger import logger
 
@@ -13,7 +13,7 @@ class Encoder:
 
     def __init__(
         self,
-        lines: List[str],
+        lines: List[Any],
         to_array: bool = False,
         to_bulk: bool = True,
         to_simple_string: bool = False,
@@ -26,6 +26,18 @@ class Encoder:
         self.to_simple_string = to_simple_string
         self.is_file = is_file
         self.to_int = to_int
+
+
+    def convert_into_array(self, item):
+        response = ""
+        if isinstance(item, list):
+            response += "*" + str(len(item)) + "\r\n"
+            for line in item:
+                response += self.convert_into_array(line)
+        else:
+            response += "$" + str(len(item)) + "\r\n" + item + "\r\n"
+
+        return response
 
     def execute(self):
         if not self.lines:
@@ -42,9 +54,7 @@ class Encoder:
         elif self.to_simple_string:
             response = f"+{' '.join(self.lines)}\r\n"
         elif self.to_array:
-            response += "*" + str(len(self.lines)) + "\r\n"
-            for word in self.lines:
-                response += "$" + str(len(word)) + "\r\n" + word + "\r\n"
+            response = self.convert_into_array(self.lines)
         elif self.to_bulk:
             data = ""
             for i in range(len(self.lines)):

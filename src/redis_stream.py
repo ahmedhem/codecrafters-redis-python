@@ -1,5 +1,5 @@
 import time
-from typing import Dict
+from typing import Dict, List
 
 from src.logger import logger
 
@@ -46,68 +46,118 @@ class RadixNode:
         self.children: Dict[str, RadixNode] = {}
         self.value = {}
 
-
 class RedisStream:
     root: RadixNode
-    last_id = ID
+    last_id: ID
 
     def __init__(self):
         self.last_id = ID(0, 0)
-
         self.root: RadixNode = RadixNode(id=self.last_id)
-
-    def XADD(self, stream_key, data, id):
+    def XADD(self, stream_key, data, id='*'):
         current = self.root
 
+        # Generate a new ID if not provided
         self.last_id = self.last_id.generate_bigger(id)
 
+        # Traverse the radix tree to find the correct position for the new entry
         for idx in range(len(stream_key)):
             if current.children.get(stream_key[idx]) is not None:
                 current = current.children[stream_key[idx]]
                 stream_key_idx = 0
                 for stream_idx in range(idx, len(stream_key)):
-                    if stream_key_idx == len(stream_key):
+                    if stream_key_idx == len(current.key):
                         break
                     if current.key[stream_key_idx] == stream_key[stream_idx]:
                         stream_key_idx += 1
                     else:
                         break
 
-                if stream_key_idx == len(stream_key) - idx - 1:
-                    # we reached a prefix
-                    current_value = current.value
-                    current_key = current.key
-                    remaining_stream = stream_key[idx:]
-                    current.value = data
-                    current.key = remaining_stream
-                    if len(current_key) > len(remaining_stream):
-                        remaining_current_key = current_key[len(remaining_stream):]
-                        current.is_leaf = False
-                        new_node = RadixNode(remaining_current_key, self.last_id, True)
-                        new_node.value = current_value
-                        current.children[remaining_current_key[0]] = new_node
+                if stream_key_idx == len(current.key):
+                    # We reached a prefix
+                    idx += stream_key_idx
                 else:
-                    if stream_key_idx < len(current.key):
-                        remaining_current_key = current.key[stream_key_idx:]
-                        current.is_leaf = None
-                        current_value = current.value
-                        current.value = None
-                        new_node = RadixNode(remaining_current_key, self.last_id, True)
-                        new_node.value = current_value
-                        current.children[remaining_current_key[0]] = new_node
+                    # Split the node
+                    remaining_current_key = current.key[stream_key_idx:]
+                    current.key = current.key[:stream_key_idx]
+                    current.is_leaf = False
 
-                    idx += stream_key_idx - 1
+                    # Create a new node for the remaining part of the key
+                    new_node = RadixNode(remaining_current_key, current.id, current.is_leaf)
+                    new_node.value = current.value
+                    new_node.children = current.children
 
+                    # Clear the current node's children and value
+                    current.children = {remaining_current_key[0]: new_node}
+                    current.value = None
+
+                    # Move to the new node
+                    current = new_node
+                    idx += stream_key_idx
             else:
+                # Insert new node
                 new_node = RadixNode(stream_key[idx:], self.last_id, True)
                 new_node.value = data
                 current.children[stream_key[idx]] = new_node
-                logger.log(current.children)
-
                 break
 
+        # If we reached the end of the stream_key, update the current node
+        if idx == len(stream_key):
+            current.is_leaf = True
+            current.id = self.last_id
+            current.value = data
+
         return str(self.last_id)
-    # a{abc}
+
+    def XRANGE(self, stream_key, start, end):
+        # Helper function to compare IDs
+        def is_id_in_range(current_id, start_id, end_id):
+            return str(start_id) <= str(current_id) <= str(end_id)
+
+        # Convert start and end IDs to ID objects
+        start_id = ID(*map(int, start.split('-')))
+        end_id = ID(*map(int, end.split('-')))
+        # Traverse the radix tree to find the node for the stream_key
+        current = self.root
+        idx = 0
+
+        while idx < len(stream_key):
+            if current.children.get(stream_key[idx]) is not None:
+                current = current.children[stream_key[idx]]
+                if current.key != stream_key[idx:idx + len(current.key)]:
+                    return []  # Stream key not found
+                idx += len(current.key)
+            else:
+                return []  # Stream key not found
+
+        # If the current node is not a leaf, return empty list
+        if not current.is_leaf:
+            return []
+
+        # Collect entries within the specified ID range
+        result: Dict[str, List] = {}
+
+        def add_value(key, value):
+            if result.get(key) is None:
+                result[key] = []
+            result[key].append(value)
+
+        if is_id_in_range(current.id, start_id, end_id):
+            add_value(str(current.id), current.value)
+
+        # Traverse children to find additional entries
+        def traverse(node):
+            if node.is_leaf and is_id_in_range(node.id, start_id, end_id):
+                add_value(str(node.id), node.value)
+            for child in node.children.values():
+                traverse(child)
+
+        for child in current.children.values():
+            traverse(child)
+
+        # Sort the result by ID
+        # result.sort(key=lambda x: x[0])
+        logger.log(result)
+        return result
     def read(self, stream_key):
         current = self.root
         idx = 0
