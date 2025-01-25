@@ -17,6 +17,7 @@ keywords_args_len: {str: int} = {
     "TYPE": 1,
     "XADD": INF,
     "XRANGE": 4,
+    "XREAD": INF,
 }
 
 
@@ -35,6 +36,7 @@ class KEYWORDS(Enum):
     TYPE: str = "TYPE"
     XADD: str = "XADD"
     XRANGE: str = "XRANGE"
+    XREAD: str = "XREAD"
 
 
 class ValueType(Enum):
