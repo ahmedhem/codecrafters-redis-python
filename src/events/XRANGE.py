@@ -15,6 +15,8 @@ class XRANGEEvent(Event):
         start = self.commands[0].args[1]
         end = self.commands[0].args[2]
 
+        if start == '-':
+            start = '0-0'
 
         result = REDIS_STREAM.XRANGE(stream_key, start, end)
         res = []
@@ -27,5 +29,5 @@ class XRANGEEvent(Event):
                     values.append(value)
             cur.append(values)
             res.append(cur)
-        logger.log(res)
+
         return [Encoder(lines=res, to_array=True).execute()]
