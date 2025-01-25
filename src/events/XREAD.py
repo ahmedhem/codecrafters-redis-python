@@ -18,10 +18,6 @@ class XREADEvent(Event):
             timeout = int(self.commands[0].args[1])
             while True:
                 current_time = datetime.utcnow()
-                synced_replicas_count = 0
-                for replica, offset in self.app.replicas_offset.items():
-                    synced_replicas_count += offset >= self.app.master_offset
-
                 if (current_time - time).total_seconds() > timeout / 1000:
                     break
 
