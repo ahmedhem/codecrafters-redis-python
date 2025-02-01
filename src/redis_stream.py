@@ -156,7 +156,6 @@ class RedisStream:
 
         # Sort the result by ID
         # result.sort(key=lambda x: x[0])
-        logger.log(result)
         return result
     def read(self, stream_key):
         current = self.root
@@ -170,8 +169,6 @@ class RedisStream:
                 idx += len(current.key)
             else:
                 return None
-
-        logger.log(current.value)
 
         return current.value
 

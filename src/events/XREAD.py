@@ -1,5 +1,6 @@
 import math
 from datetime import datetime
+from time import sleep
 
 from src.constants import KEYWORDS
 from src.encoder import Encoder
@@ -12,45 +13,75 @@ from src.redis_stream import REDIS_STREAM
 class XREADEvent(Event):
     supported_actions: list = [KEYWORDS.XREAD.value]
 
-    def execute(self):
-        if str(self.commands[0].args[0]) == 'block':
-            time = datetime.utcnow()
-            timeout = int(self.commands[0].args[1])
-            while True:
-                current_time = datetime.utcnow()
-                if (current_time - time).total_seconds() > timeout / 1000:
-                    break
-
-        streams_hardcoded_string = str(self.commands[0].args[0]) if str(self.commands[0].args[0]) != 'block' else str(self.commands[0].args[2])
+    def read_streams(self, streams, times):
+        # Fetch data for each stream within the specified time range
         result = []
+        for idx, stream_key in enumerate(streams):
+            start_time = times[idx]
+            end_time = f'{"9" * 18}-0'  # A very large number to represent the end of the stream
+            stream_data = REDIS_STREAM.XRANGE(stream_key, start_time, end_time)
+            result.append((stream_key, stream_data if stream_data else {}))
+        return result
+
+    def execute(self):
+        logger.log(f"Current time:")
+
+        next_index = 0 if not str(self.commands[0].args[0]) == 'block' else 2
+        # Split the remaining arguments into streams and times
+        args_length = len(self.commands[0].args)
+        mid_point = next_index + 1 + (args_length - next_index) // 2
+
+        streams = self.commands[0].args[next_index + 1: mid_point]
+        times = self.commands[0].args[mid_point: args_length]
+        old_result = self.read_streams(streams, times)
+        logger.log(old_result)
+
+        # Check if the first argument is 'block' to handle timeout logic
+        if str(self.commands[0].args[0]) == 'block':
+            start_datetime = datetime.utcnow()
+            timeout_ms = int(self.commands[0].args[1])
+
+            # Wait until the timeout period has elapsed
+            sleep(timeout_ms/1000)
+
+        updated_result = self.read_streams(streams, times)
+        new_result = []
+        logger.log(updated_result)
+
+        for idx, (stream_key, stream_data) in enumerate(updated_result):
+            old_stream_data = old_result[idx][1]
+
+            new_data = {}
+            for key, values in stream_data.items():
+                for value in values:
+                    if not str(self.commands[0].args[0]) == 'block' or not old_stream_data.get(key) or value not in old_stream_data.get(key):
+                        if not new_data.get(key):
+                            new_data[key] = []
+                        new_data[key].append(value)
+            if new_data:
+                new_result.append((stream_key, new_data))
+
+        logger.log(new_result)
+        # Process the fetched data and build the response
         response = []
-        streams = []
-        times = []
-        for idx in range(1, int(len(self.commands[0].args) / 2 + 1)):
-            streams.append(self.commands[0].args[idx])
-        for idx in range(1 + int(len(self.commands[0].args) / 2), len(self.commands[0].args)):
-            times.append(self.commands[0].args[idx])
-        logger.log(streams)
-        logger.log(times)
-        for idx in range(len(streams)):
-            stream_key = streams[idx]
-            start = times[idx]
-            end = f'{int(1e18)}-0'
-
-            result.append((stream_key, REDIS_STREAM.XRANGE(stream_key, start, end)))
-
-        for stream_key, values in result:
-            logger.log(result)
-            now = [stream_key]
-            for time, entries in values.items():
-                cur = [[time]]
+        for stream_key, stream_values in new_result:
+            stream_response = [stream_key]
+            if not stream_values:
+                continue
+            for timestamp, entries in stream_values.items():
+                entry_data = [[timestamp]]
                 values = []
+
                 for entry in entries:
                     for key, value in entry.items():
-                        values.append(key)
-                        values.append(value)
-                cur[0].append(values)
-                now.append(cur)
-            response.append(now)
-        logger.log(response)
+                        values.extend([key, value])
+
+                entry_data[0].append(values)
+                stream_response.append(entry_data)
+
+            response.append(stream_response)
+
+        # Encode the response and return
+        if not response:
+            response = ["-1"]
         return [Encoder(lines=response, to_array=True).execute()]
