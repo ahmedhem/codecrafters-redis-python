@@ -11,10 +11,9 @@ class INCREvent(Event):
     def execute(self):
         key = self.commands[0].args[0]
         value = Storage().get(key)
-        logger.log(value)
-        if not value:
+        if value == "-1":
             Storage.set(key, "1", TypeValue_MAP['int'])
         elif value['type'] == 'int':
             Storage.set(key, int(value['value']) + 1, 1)
 
-        return [Encoder(lines=[f'{Storage().get(key)['value']}'], to_int=True).execute()]
+        return [Encoder(lines=[f'{Storage().get(key)["value"]}'], to_int=True).execute()]
