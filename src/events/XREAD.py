@@ -42,7 +42,13 @@ class XREADEvent(Event):
             timeout_ms = int(self.commands[0].args[1])
 
             # Wait until the timeout period has elapsed
-            sleep(timeout_ms/1000)
+            if timeout_ms == 0:
+                while True:
+                   current = self.read_streams(streams, times)
+                   if current != old_result:
+                        break
+            else:
+                sleep(timeout_ms/1000)
 
         updated_result = self.read_streams(streams, times)
         new_result = []
