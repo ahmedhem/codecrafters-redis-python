@@ -13,7 +13,10 @@ class SetEvent(Event):
     supported_actions: list = [KEYWORDS.SET.value]
 
     def get_type(self):
-        return ValueType_MAP[0]
+        if self.value is str:
+            return ValueType_MAP[0]
+        elif self.value is int:
+            return ValueType_MAP[1]
 
     def get_expiry_time(self):
         for idx in range(len(self.commands[0].args) - 1):

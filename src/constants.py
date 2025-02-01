@@ -18,6 +18,7 @@ keywords_args_len: {str: int} = {
     "XADD": INF,
     "XRANGE": 4,
     "XREAD": INF,
+    "INCR": 1,
 }
 
 
@@ -37,6 +38,7 @@ class KEYWORDS(Enum):
     XADD: str = "XADD"
     XRANGE: str = "XRANGE"
     XREAD: str = "XREAD"
+    INCR: str = "INCR"
 
 
 class ValueType(Enum):
@@ -53,7 +55,12 @@ class ValueType(Enum):
     LIST_ZIPLIST = 14
 
 ValueType_MAP = {
-    0: "string"
+    0: "string",
+    1: "int"
+}
+TypeValue_MAP = {
+    "string": 0,
+    "int": 1
 }
 class ServerState(Enum):
     STANDALONE = "standalone"
