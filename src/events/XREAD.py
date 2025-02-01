@@ -17,7 +17,7 @@ class XREADEvent(Event):
         # Fetch data for each stream within the specified time range
         result = []
         for idx, stream_key in enumerate(streams):
-            start_time = times[idx]
+            start_time = '0-0' if times[0] == '$' else times[idx]
             end_time = f'{"9" * 18}-0'  # A very large number to represent the end of the stream
             stream_data = REDIS_STREAM.XRANGE(stream_key, start_time, end_time)
             result.append((stream_key, stream_data if stream_data else {}))
