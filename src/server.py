@@ -1,14 +1,13 @@
 import argparse
-import queue
 import socket
 import sys
 import threading
+from collections import deque
 from datetime import datetime
 from enum import Enum
 from http.client import responses
 from typing import Optional, Tuple, Dict, Any, List
 import time
-
 from src.config import Config
 from src.constants import ServerState
 from src.encoder import Encoder
@@ -38,6 +37,8 @@ class RedisServer:
     replica_lock = None
     client_socket: socket.socket = None
     master_offset = 0
+    is_transaction = False
+    msg_queue: deque = deque()
 
     def __init__(self, host: str = "localhost", port: int = 6379):
         self.replica_lock = threading.Lock()
@@ -91,13 +92,12 @@ class RedisServer:
                         self.replicas.append((client_socket, address))
 
                     # Process commands based on current server state
-                    responses = self._process_command(data, is_from_master=False)
+                    responses = self.process_command(data, is_from_master=False)
                     for res in responses:
                         client_socket.send(res)
                     if is_replica_handshake:
                         logger.log(("replica handshake found"))
                         self.replicas_offset[client_socket] = 0
-
 
         except Exception as e:
             logger.log(f"Error handling client {address}: {e}")
@@ -163,7 +163,7 @@ class RedisServer:
                 self.client_socket = self.master_connection
                 if command:
                     command = b"*3\r\n" + command  # hardcoded for now until we figure out why the tester send the format like thi
-                    responses = self._process_command(command)
+                    responses = self.process_command(command)
                     if responses:
                         for response in responses:
                             self.master_connection.sendall(response)
@@ -200,7 +200,7 @@ class RedisServer:
         RDBParser(file=rdb_data).parse()
         # Parse RDB and populate data_store
 
-    def _process_command(
+    def process_command(
         self, data: bytes, is_from_master: bool = False
     ) -> List[bytes]:
         """Process Redis commands based on server state and source"""
@@ -242,7 +242,7 @@ class RedisServer:
                 if not command:
                     continue
                 self.client_socket = self.master_connection
-                responses = self._process_command(command, is_from_master=True)
+                responses = self.process_command(command, is_from_master=True)
                 if responses:
                     for idx, res in enumerate(responses):
                         self.master_connection.send(res)

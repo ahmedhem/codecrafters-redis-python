@@ -9,4 +9,5 @@ class MULTIEvent(Event):
     supported_actions: list = [KEYWORDS.MULTI.value]
 
     def execute(self):
+        self.app.is_transaction = True
         return [Encoder(lines=['OK']).execute()]

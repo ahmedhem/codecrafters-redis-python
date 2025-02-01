@@ -2,6 +2,7 @@ from typing import List, Tuple
 
 from src.constants import ServerState
 from src.decoder import Decoder
+from src.encoder import Encoder
 from src.events.base import RedisCommandRegistry
 from src.logger import logger
 from src.models.command import Command
@@ -58,19 +59,19 @@ class MessageHandler:
                 if not event_handler:
                     raise ValueError(f"Unknown command: {command.action}")
 
-                logger.log(commands)
-
                 # Check if command can be replicated
                 can_replicate = (command.action == "SET" and
                                  self.app.state == ServerState.MASTER)
 
-                # Execute command
-                response = event_handler(app=self.app,
-                                         commands=[command]).execute()
-                # Add response if appropriate
-                if response and (self.app.state == ServerState.MASTER or
-                        command.action in self.returnable_commands):
+                if self.app.is_transaction and not command.action == "EXEC":
+                    self.app.msg_queue.append(split_messages[idx])
+                    responses.append(Encoder(lines=["QUEUED"]).execute())
 
+                # Execute command
+                response = event_handler(app=self.app, commands=[command]).execute()
+                logger.log(f"Res after encode {response}")
+                # Add response if appropriate
+                if response and (self.app.state == ServerState.MASTER or command.action in self.returnable_commands):
                     responses.extend(response)
 
                 # Handle replication logic

@@ -10,11 +10,13 @@ class Encoder:
     to_int: bool
     to_simple_string: bool
     is_file: bool
+    to_simple_array: bool
 
     def __init__(
         self,
         lines: List[Any],
         to_array: bool = False,
+        to_simple_array: bool = False,
         to_bulk: bool = True,
         to_simple_string: bool = False,
         is_file: bool = False,
@@ -26,6 +28,7 @@ class Encoder:
         self.to_simple_string = to_simple_string
         self.is_file = is_file
         self.to_int = to_int
+        self.to_simple_array = to_simple_array
 
 
     def convert_into_array(self, item):
@@ -48,7 +51,10 @@ class Encoder:
         response = ""
         if self.to_int:
             response = f":{self.lines[0]}\r\n"
-            logger.log(response)
+        elif self.to_simple_array:
+            response = "*" + str(len(self.lines))
+            for item in self.lines:
+                response += str(item)
         elif self.is_file:
             response = f"{len(self.lines[0])}\r\n" + self.lines[0]
         elif self.to_simple_string:

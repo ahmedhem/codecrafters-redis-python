@@ -19,6 +19,7 @@ keywords_args_len: {str: int} = {
     "XRANGE": 4,
     "XREAD": INF,
     "INCR": 0,
+    "EXEC": 0,
 }
 
 
@@ -40,6 +41,7 @@ class KEYWORDS(Enum):
     XREAD: str = "XREAD"
     INCR: str = "INCR"
     MULTI: str = "MULTI"
+    EXEC: str = "EXEC"
 
 
 class ValueType(Enum):
