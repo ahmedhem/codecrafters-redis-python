@@ -1,3 +1,5 @@
+from collections import deque
+
 from src.encoder import Encoder
 from src.events.base import Event, RedisCommandRegistry
 from src.logger import logger
@@ -10,4 +12,5 @@ class MULTIEvent(Event):
 
     def execute(self):
         self.app.is_transaction[self.app.client_socket] = True
+        self.app.msg_queue[self.app.client_socket] = deque()
         return [Encoder(lines=['OK']).execute()]

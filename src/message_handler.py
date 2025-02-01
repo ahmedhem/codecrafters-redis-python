@@ -67,7 +67,7 @@ class MessageHandler:
 
                 # logger.log(f"client trans {self.app.is_transaction}")
                 if self.app.is_transaction.get(self.app.client_socket) and command.action and self.app.state == ServerState.MASTER and command.action not in self.transactional_commands:
-                    self.app.msg_queue.append(split_messages[idx])
+                    self.app.msg_queue[self.app.client_socket].append(split_messages[idx])
                     responses.append(Encoder(lines=["QUEUED"]).execute())
                     continue
                 # Execute command

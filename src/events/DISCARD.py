@@ -12,5 +12,5 @@ class DISCARDEvent(Event):
         if not self.app.is_transaction.get(self.app.client_socket):
             raise Exception('DISCARD without MULTI')
         self.app.is_transaction[self.app.client_socket] = False
-        self.app.msg_queue.clear()
+        self.app.msg_queue[self.app.client_socket].clear()
         return [Encoder(lines=['OK']).execute()]
