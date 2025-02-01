@@ -43,24 +43,25 @@ class Encoder:
         return response
 
     def execute(self):
-        if not self.lines:
-            return b""
+        response = ""
         if self.lines and self.lines[0] == "-1":  # None
             return "$-1\r\n".encode("utf-8")
-
-        response = ""
-        if self.to_int:
+        elif self.to_int:
             response = f":{self.lines[0]}\r\n"
         elif self.to_simple_array:
             response = "*" + str(len(self.lines))
             for item in self.lines:
                 response += str(item)
+            if not self.lines:
+                response += '\r\n'
         elif self.is_file:
             response = f"{len(self.lines[0])}\r\n" + self.lines[0]
         elif self.to_simple_string:
             response = f"+{' '.join(self.lines)}\r\n"
         elif self.to_array:
             response = self.convert_into_array(self.lines)
+        elif not self.lines:
+            return b""
         elif self.to_bulk:
             data = ""
             for i in range(len(self.lines)):
