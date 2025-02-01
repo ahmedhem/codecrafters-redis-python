@@ -64,7 +64,7 @@ class MessageHandler:
                 can_replicate = (command.action == "SET" and
                                  self.app.state == ServerState.MASTER)
 
-                if self.app.is_transaction and command.action in self.transactional_commands:
+                if self.app.is_transaction and command.action and self.app.state == ServerState.MASTER and command.action != "EXEC":
                     self.app.msg_queue.append(split_messages[idx])
                     responses.append(Encoder(lines=["QUEUED"]).execute())
                     continue
