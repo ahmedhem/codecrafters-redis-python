@@ -20,6 +20,7 @@ class MessageHandler:
         self.returnable_commands = {"REPLCONF", "GET", "INFO"}
         self.transactional_commands = {"SET", "INCR"}
         self.replica_restricted_commands = {"SET"}
+        self.transactional_commands = {"EXEC", "DISCARD", "MULTI"}
 
     def format_command(self, decoded_commands: List[List[str]]) -> List[Command]:
         """Formats decoded messages into Command objects."""
@@ -65,7 +66,7 @@ class MessageHandler:
                                  self.app.state == ServerState.MASTER)
 
                 # logger.log(f"client trans {self.app.is_transaction}")
-                if self.app.is_transaction.get(self.app.client_socket) and command.action and self.app.state == ServerState.MASTER and command.action != "EXEC":
+                if self.app.is_transaction.get(self.app.client_socket) and command.action and self.app.state == ServerState.MASTER and command.action not in self.transactional_commands:
                     self.app.msg_queue.append(split_messages[idx])
                     responses.append(Encoder(lines=["QUEUED"]).execute())
                     continue

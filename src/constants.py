@@ -20,6 +20,7 @@ keywords_args_len: {str: int} = {
     "XREAD": INF,
     "INCR": 0,
     "EXEC": 0,
+    "DISCARD": 0,
 }
 
 
@@ -42,6 +43,7 @@ class KEYWORDS(Enum):
     INCR: str = "INCR"
     MULTI: str = "MULTI"
     EXEC: str = "EXEC"
+    DISCARD: str = "DISCARD"
 
 
 class ValueType(Enum):
