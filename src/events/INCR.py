@@ -16,5 +16,7 @@ class INCREvent(Event):
             Storage.set(key, "1", Types.INT.value)
         elif value['type'] == Types.INT.value:
             Storage.set(key, int(value['value']) + 1, Types.INT.value)
+        else:
+            raise "value is not an integer or out of range"
 
         return [Encoder(lines=[f'{Storage().get(key)["value"]}'], to_int=True).execute()]
