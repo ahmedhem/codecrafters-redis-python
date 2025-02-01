@@ -18,6 +18,7 @@ class MessageHandler:
         self.app = app
 
         self.returnable_commands = {"REPLCONF", "GET", "INFO"}
+        self.transactional_commands = {"SET", "INCR"}
         self.replica_restricted_commands = {"SET"}
 
     def format_command(self, decoded_commands: List[List[str]]) -> List[Command]:
@@ -63,10 +64,10 @@ class MessageHandler:
                 can_replicate = (command.action == "SET" and
                                  self.app.state == ServerState.MASTER)
 
-                if self.app.is_transaction and not command.action == "EXEC":
+                if self.app.is_transaction and command.action in self.transactional_commands:
                     self.app.msg_queue.append(split_messages[idx])
                     responses.append(Encoder(lines=["QUEUED"]).execute())
-
+                    continue
                 # Execute command
                 response = event_handler(app=self.app, commands=[command]).execute()
                 logger.log(f"Res after encode {response}")
