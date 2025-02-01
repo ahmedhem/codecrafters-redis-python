@@ -37,7 +37,7 @@ class RedisServer:
     replica_lock = None
     client_socket: socket.socket = None
     master_offset = 0
-    is_transaction = False
+    is_transaction: Dict = {}
     msg_queue: deque = deque()
 
     def __init__(self, host: str = "localhost", port: int = 6379):

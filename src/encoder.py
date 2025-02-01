@@ -49,11 +49,10 @@ class Encoder:
         elif self.to_int:
             response = f":{self.lines[0]}\r\n"
         elif self.to_simple_array:
-            response = "*" + str(len(self.lines))
+            response = "*" + str(len(self.lines)) + "\r\n"
             for item in self.lines:
+                item = item.decode("utf-8")
                 response += str(item)
-            if not self.lines:
-                response += '\r\n'
         elif self.is_file:
             response = f"{len(self.lines[0])}\r\n" + self.lines[0]
         elif self.to_simple_string:

@@ -61,16 +61,16 @@ class MessageHandler:
                     raise ValueError(f"Unknown command: {command.action}")
 
                 # Check if command can be replicated
-                can_replicate = (command.action == "SET" and
+                can_replicate = (command.action == "SET" and # ADD INCR as well
                                  self.app.state == ServerState.MASTER)
 
-                if self.app.is_transaction and command.action and self.app.state == ServerState.MASTER and command.action != "EXEC":
+                # logger.log(f"client trans {self.app.is_transaction}")
+                if self.app.is_transaction.get(self.app.client_socket) and command.action and self.app.state == ServerState.MASTER and command.action != "EXEC":
                     self.app.msg_queue.append(split_messages[idx])
                     responses.append(Encoder(lines=["QUEUED"]).execute())
                     continue
                 # Execute command
                 response = event_handler(app=self.app, commands=[command]).execute()
-                logger.log(f"Res after encode {response}")
                 # Add response if appropriate
                 if response and (self.app.state == ServerState.MASTER or command.action in self.returnable_commands):
                     responses.extend(response)
