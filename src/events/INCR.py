@@ -13,7 +13,7 @@ class INCREvent(Event):
         value = Storage().get(key)
         logger.log(value)
         if not value:
-            Storage.set(key, 1, TypeValue_MAP['int'])
+            Storage.set(key, "1", TypeValue_MAP['int'])
         elif value['type'] == 'int':
             Storage.set(key, int(value['value']) + 1, 1)
 
