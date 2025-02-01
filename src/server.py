@@ -38,7 +38,7 @@ class RedisServer:
     client_socket: socket.socket = None
     master_offset = 0
     is_transaction: Dict = {}
-    msg_queue: Dict
+    msg_queue: Dict = {}
 
     def __init__(self, host: str = "localhost", port: int = 6379):
         self.replica_lock = threading.Lock()
