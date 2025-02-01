@@ -14,11 +14,11 @@ class SetEvent(Event):
     def get_type(self):
         try:
             is_int = int(self.value)
-            return Types.INT
+            return Types.INT.value
         except ValueError:
             pass
 
-        return Types.STRING
+        return Types.STRING.value
 
     def get_expiry_time(self):
         for idx in range(len(self.commands[0].args) - 1):
