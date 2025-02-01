@@ -66,3 +66,8 @@ class ServerState(Enum):
     STANDALONE = "standalone"
     REPLICA = "slave"
     MASTER = "master"
+
+class Types(Enum):
+    STRING = "string"
+    INT = "integer"
+

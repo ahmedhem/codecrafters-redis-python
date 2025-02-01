@@ -2,8 +2,7 @@ from src.encoder import Encoder
 from src.events.base import Event, RedisCommandRegistry
 from src.logger import logger
 from src.storage import Storage
-from src.constants import ValueType_MAP, KEYWORDS
-# TODO assume there are many actions with that are shared with another events
+from src.constants import Types, KEYWORDS
 
 @RedisCommandRegistry.register("SET")
 class SetEvent(Event):
@@ -15,11 +14,11 @@ class SetEvent(Event):
     def get_type(self):
         try:
             is_int = int(self.value)
-            return ValueType_MAP[1]
+            return Types.INT
         except ValueError:
             pass
 
-        return ValueType_MAP[0]
+        return Types.STRING
 
     def get_expiry_time(self):
         for idx in range(len(self.commands[0].args) - 1):
