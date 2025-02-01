@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Dict, Any
 import re
-
+from src.constants import Types
 from src.config import Config
 
 
@@ -40,7 +40,7 @@ class Storage:
             expire_time = datetime.utcnow() + timedelta(milliseconds=expiry_ms)
 
         self.databases[Config.db_nr][key] = {
-            "value": value,
+            "value": format(value),
             "expire_time": expire_time,
             "type": type,
         }
@@ -56,3 +56,9 @@ class Storage:
             return self.databases[Config.db_nr][key]
 
         return '-1'
+
+    def format(self, value, type):
+        if type == Types.INT:
+            return int(value)
+        if type == Types.STRING:
+            return str(value)
